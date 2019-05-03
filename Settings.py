@@ -31,17 +31,17 @@ class SettingsGUI:
 
     def build_gui(self):
         # Set GUI Geometry and GUI Title
-        self.main.geometry('480x400+500+150')
+        self.main.geometry('444x285+500+150')
         self.main.title('Vacuum Settings')
         self.main.resizable(False, False)
 
         # Set GUI Frames
         header_frame = Frame(self.main)
-        network_frame = LabelFrame(self.main, text='Network Settings', width=480, height=70)
-        wrkbook_main_frame = LabelFrame(self.main, text='SQL Worksheet Staging Tables', width=480, height=54)
-        wrkbook_left_frame = Frame(wrkbook_main_frame, width=238, height=54)
-        wrkbook_right_frame = Frame(wrkbook_main_frame, width=238, height=54)
-        error_frame = LabelFrame(self.main, text='SQL Workbook Error Tables', width=508, height=60)
+        network_frame = LabelFrame(self.main, text='Network Settings', width=444, height=70)
+        wrkbook_main_frame = LabelFrame(self.main, text='SQL Worksheet Staging Tables', width=444, height=54)
+        wrkbook_left_frame = Frame(wrkbook_main_frame, width=219, height=54)
+        wrkbook_right_frame = Frame(wrkbook_main_frame, width=219, height=54)
+        error_frame = LabelFrame(self.main, text='SQL Workbook Error Tables', width=444, height=60)
         buttons_frame = Frame(self.main)
 
         # Apply Frames into GUI
@@ -59,13 +59,13 @@ class SettingsGUI:
 
         # Apply Network Labels & Input boxes to the Network_Frame
         #     SQL Server Input Box
-        server_label = Label(self.main, text='SQL Server:', padx=15, pady=7)
+        server_label = Label(self.main, text='Server:', padx=15, pady=7)
         server_txtbox = Entry(self.main, textvariable=self.server)
         server_label.pack(in_=network_frame, side=LEFT)
         server_txtbox.pack(in_=network_frame, side=LEFT)
 
         #     Server Database Input Box
-        database_label = Label(self.main, text='Server Database:')
+        database_label = Label(self.main, text='Database:')
         database_txtbox = Entry(self.main, textvariable=self.database)
         database_txtbox.pack(in_=network_frame, side=RIGHT, pady=7, padx=15)
         database_label.pack(in_=network_frame, side=RIGHT)
@@ -112,11 +112,11 @@ class SettingsGUI:
         # Apply buttons to the Buttons_Frame
         #       Save Button
         save_settings_button = Button(buttons_frame, text='Save Settings', width=20, command=self.save_settings)
-        save_settings_button.grid(row=0, column=0, pady=6, padx=15)
+        save_settings_button.grid(row=0, column=0, pady=6, padx=10)
 
         #       Cancel Button
         cancel_button = Button(buttons_frame, text='Cancel', width=20, command=self.cancel)
-        cancel_button.grid(row=0, column=1, pady=6, padx=165)
+        cancel_button.grid(row=0, column=1, pady=6, padx=115)
 
         # Show GUI Dialog
         self.main.mainloop()
