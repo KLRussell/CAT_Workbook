@@ -16,8 +16,6 @@ class SettingsGUI:
         else:
             self.header_text = 'Welcome to Vacuum Settings!\nSettings can be changed below.\nPress save when finished'
 
-        self.asql = global_objs['SQL']
-        self.asql.connect('alch')
         self.main = Tk()
 
         # GUI Variables
@@ -139,17 +137,17 @@ class SettingsGUI:
         if key and item:
             global_objs[setting_list].del_item(key)
 
-        global_objs[setting_list].add_item(key=key, val=val.get(), encrypt=True)
+        global_objs[setting_list].add_item(key=key, val=val, encrypt=True)
 
     def fill_gui(self):
-        self.fill_textbox('Settings', self.server, 'Server')
-        self.fill_textbox('Settings', self.database, 'Database')
-        self.fill_textbox('Local_Settings', self.w1s, 'W1S_TBL')
-        self.fill_textbox('Local_Settings', self.w2s, 'W2S_TBL')
-        self.fill_textbox('Local_Settings', self.w3s, 'W3S_TBL')
-        self.fill_textbox('Local_Settings', self.w4s, 'W4S_TBL')
-        self.fill_textbox('Local_Settings', self.we, 'WE_TBL')
-        self.fill_textbox('Local_Settings', self.wne, 'WNE_TBL')
+        self.fill_textbox('Settings', self.server.get(), 'Server')
+        self.fill_textbox('Settings', self.database.get(), 'Database')
+        self.fill_textbox('Local_Settings', self.w1s.get(), 'W1S_TBL')
+        self.fill_textbox('Local_Settings', self.w2s.get(), 'W2S_TBL')
+        self.fill_textbox('Local_Settings', self.w3s.get(), 'W3S_TBL')
+        self.fill_textbox('Local_Settings', self.w4s.get(), 'W4S_TBL')
+        self.fill_textbox('Local_Settings', self.we.get(), 'WE_TBL')
+        self.fill_textbox('Local_Settings', self.wne.get(), 'WNE_TBL')
 
     def save_settings(self):
         if not self.w1s.get():
@@ -179,12 +177,12 @@ class SettingsGUI:
         else:
             self.add_setting('Settings', self.server.get(), 'Server')
             self.add_setting('Settings', self.database.get(), 'Database')
-            self.add_setting('Settings', self.w1s.get(), 'W1S_TBL')
-            self.add_setting('Settings', self.w2s.get(), 'W2S_TBL')
-            self.add_setting('Settings', self.w3s.get(), 'W3S_TBL')
-            self.add_setting('Settings', self.w4s.get(), 'W4S_TBL')
-            self.add_setting('Settings', self.we.get(), 'WE_TBL')
-            self.add_setting('Settings', self.wne.get(), 'WNE_TBL')
+            self.add_setting('Local_Settings', self.w1s.get(), 'W1S_TBL')
+            self.add_setting('Local_Settings', self.w2s.get(), 'W2S_TBL')
+            self.add_setting('Local_Settings', self.w3s.get(), 'W3S_TBL')
+            self.add_setting('Local_Settings', self.w4s.get(), 'W4S_TBL')
+            self.add_setting('Local_Settings', self.we.get(), 'WE_TBL')
+            self.add_setting('Local_Settings', self.wne.get(), 'WNE_TBL')
 
             self.main.destroy()
 

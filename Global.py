@@ -191,7 +191,7 @@ class ShelfHandle:
                         sfile[key] = myinput
                 elif myobj:
                     myobj.encrypt_text(val)
-                    sfile[key] = val
+                    sfile[key] = myobj
                 else:
                     sfile[key] = val
 
@@ -272,6 +272,10 @@ class LogHandle:
 
 
 class SQLHandle:
+    server = None
+    database = None
+    dsn = None
+    accdb_file = None
     conn_type = None
     conn_str = None
     session = False
@@ -328,92 +332,74 @@ class SQLHandle:
         else:
             self.create_conn_str()
 
-    def conn_chk(self):
-        exit_loop = False
+    def test_conn(self, conn_type=None, server=None, database=None, dsn=None, accdb_file=None):
+        assert(conn_type or self.conn_type)
 
-        while not exit_loop:
-            self.val_settings()
-            myquery = "SELECT 1 from sys.sysprocesses"
+        if conn_type:
+            self.conn_type = conn_type
 
+        if server:
+            self.server = server
+
+        if database:
+            self.database = database
+
+        if dsn:
+            self.dsn = dsn
+
+        if accdb_file:
+            self.accdb_file = accdb_file
+
+        self.val_settings()
+
+        myquery = "SELECT 1 from sys.sysprocesses"
+
+        try:
             if self.conn_type == 'alch':
                 self.engine = mysql.create_engine(self.conn_str)
+                obj = self.engine.execute(mysql.text(myquery))
+
+                if obj._saved_cursor.arraysize > 0:
+                    return True
             else:
                 self.conn = pyodbc.connect(self.conn_str)
                 self.cursor = self.conn.cursor()
                 self.conn.commit()
 
-            try:
-                if self.conn_type == 'alch':
-                    obj = self.engine.execute(mysql.text(myquery))
-
-                    if obj._saved_cursor.arraysize > 0:
-                        exit_loop = True
-                    else:
-                        if self.server:
-                            self.server = None
-                        if self.database:
-                            self.database = None
-                        if self.settingsobj.grab_item('Server'):
-                            self.settingsobj.del_item('Server')
-                        if self.settingsobj.grab_item('Database'):
-                            self.settingsobj.del_item('Database')
-                        print('Error! Server & Database combination are incorrect!')
-                elif self.conn_type == 'accdb':
-                    if len(self.get_accdb_tables()) > 0:
-                        exit_loop = True
-                    else:
-                        if self.accdb_file:
-                            self.accdb_file = None
-
-                        print('Error! Accdb is incorrect!')
+                if self.conn_type == 'accdb' and len(self.get_accdb_tables()) > 0:
+                    return True
                 else:
                     df = sql.read_sql(myquery, self.conn)
 
                     if len(df) > 0:
-                        exit_loop = True
-                    else:
-                        if self.conn_type == 'sql':
-                            if self.server:
-                                self.server = None
-                            if self.database:
-                                self.database = None
-                            if self.settingsobj.grab_item('Server'):
-                                self.settingsobj.del_item('Server')
-                            if self.settingsobj.grab_item('Database'):
-                                self.settingsobj.del_item('Database')
-                            print('Error! Server & Database combination are incorrect!')
-                        else:
-                            if self.dsn:
-                                self.dsn = None
-                            if self.settingsobj.grab_item('DSN'):
-                                self.settingsobj.del_item('DSN')
+                        return True
 
-                            print('Error! DSN is incorrect!')
+        finally:
+            if self.conn_type in ('alch', 'sql'):
+                self.server = None
+                self.database = None
+            elif self.conn_type == 'accdb':
+                self.accdb_file = None
+            else:
+                self.dsn = None
 
-                self.close()
+            self.close()
 
-            except ValueError as a:
-                if self.conn_type in ['alch', 'sql']:
-                    if self.server:
-                        self.server = None
-                    if self.database:
-                        self.database = None
+    def conn_chk(self):
+        exit_loop = False
+
+        while not exit_loop:
+            if self.test_conn():
+                exit_loop = True
+            else:
+                if self.conn_type in ('alch', 'sql'):
                     if self.settingsobj.grab_item('Server'):
                         self.settingsobj.del_item('Server')
                     if self.settingsobj.grab_item('Database'):
                         self.settingsobj.del_item('Database')
-                    print('Error! Server & Database combination are incorrect!')
-                else:
-                    if self.dsn:
-                        self.dsn = None
+                elif self.conn_type == 'dsn':
                     if self.settingsobj.grab_item('DSN'):
                         self.settingsobj.del_item('DSN')
-                    if self.accdb_file:
-                        self.accdb_file = None
-
-                    print('Error! DSN is incorrect!')
-
-                self.close()
 
     def get_accdb_tables(self):
         if self.conn_type == 'accdb':
