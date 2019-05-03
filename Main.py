@@ -221,6 +221,15 @@ def proc_errors():
 
 
 def load_settings():
+    if not os.path.exists(errors_dir):
+        os.makedirs(errors_dir)
+
+    if not os.path.exists(process_dir):
+        os.makedirs(process_dir)
+
+    if not os.path.exists(processed_dir):
+        os.makedirs(processed_dir)
+
     if not global_objs['Local_Settings'].grab_item('W1S_TBL'):
         global_objs['Local_Settings'].add_item('W1S_TBL', None,
                                                'Please input the SQL table for CAT Worksheet One Staging table:')
