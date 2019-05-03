@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 from Global import grabobjs
-from Global import ShelfHandle
+from Global import CryptHandle
 import os
 
 curr_dir = os.path.dirname(os.path.abspath(__file__))
@@ -126,11 +126,20 @@ class SettingsGUI:
         self.main.mainloop()
 
     @staticmethod
-    def fill_textbox(setting_name, set_val, val):
-        item = global_objs[setting_name].grab_item(val)
+    def fill_textbox(setting_list, val, key):
+        item = global_objs[setting_list].grab_item(key)
 
-        if val and isinstance(item, ShelfHandle):
-            set_val.set(item.decrypt_text())
+        if val and isinstance(item, CryptHandle):
+            val.set(item.decrypt_text())
+
+    @staticmethod
+    def add_setting(setting_list, val, key):
+        item = global_objs[setting_list].grab_item(key)
+
+        if key and item:
+            global_objs[setting_list].del_item(key)
+
+        global_objs[setting_list].add_item(key=key, val=val.get(), encrypt=True)
 
     def fill_gui(self):
         self.fill_textbox('Settings', self.server, 'Server')
@@ -168,14 +177,16 @@ class SettingsGUI:
             messagebox.showerror('WNE Empty Error!', 'No value has been inputed for WNE TBL (Workbook Norm Errors)',
                                  parent=self.main)
         else:
-            global_objs['Local_Settings'].add_item(key='Server', val=self.server.get(), encrypt=True)
-            global_objs['Local_Settings'].add_item(key='Database', val=self.server.get(), encrypt=True)
-            global_objs['Local_Settings'].add_item(key='W1S_TBL', val=self.w1s.get(), encrypt=True)
-            global_objs['Local_Settings'].add_item(key='W2S_TBL', val=self.w2s.get(), encrypt=True)
-            global_objs['Local_Settings'].add_item(key='W3S_TBL', val=self.w3s.get(), encrypt=True)
-            global_objs['Local_Settings'].add_item(key='W4S_TBL', val=self.w4s.get(), encrypt=True)
-            global_objs['Local_Settings'].add_item(key='WE_TBL', val=self.we.get(), encrypt=True)
-            global_objs['Local_Settings'].add_item(key='WNE_TBL', val=self.wne.get(), encrypt=True)
+            self.add_setting('Settings', self.server.get(), 'Server')
+            self.add_setting('Settings', self.database.get(), 'Database')
+            self.add_setting('Settings', self.w1s.get(), 'W1S_TBL')
+            self.add_setting('Settings', self.w2s.get(), 'W2S_TBL')
+            self.add_setting('Settings', self.w3s.get(), 'W3S_TBL')
+            self.add_setting('Settings', self.w4s.get(), 'W4S_TBL')
+            self.add_setting('Settings', self.we.get(), 'WE_TBL')
+            self.add_setting('Settings', self.wne.get(), 'WNE_TBL')
+
+            self.main.destroy()
 
     def cancel(self):
         self.main.destroy()
