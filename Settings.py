@@ -1,11 +1,12 @@
 from tkinter import *
 from tkinter import messagebox
 from Global import grabobjs
+from Global import ShelfHandle
 import os
 
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 main_dir = os.path.dirname(curr_dir)
-Global_Objs = grabobjs(main_dir)
+global_objs = grabobjs(main_dir)
 
 
 class SettingsGUI:
@@ -15,7 +16,7 @@ class SettingsGUI:
         else:
             self.header_text = 'Welcome to Vacuum Settings!\nSettings can be changed below.\nPress save when finished'
 
-        self.asql = Global_Objs['SQL']
+        self.asql = global_objs['SQL']
         self.asql.connect('alch')
         self.main = Tk()
 
@@ -118,11 +119,63 @@ class SettingsGUI:
         cancel_button = Button(buttons_frame, text='Cancel', width=20, command=self.cancel)
         cancel_button.grid(row=0, column=1, pady=6, padx=115)
 
+        # Fill Textboxes with settings
+        self.fill_gui()
+
         # Show GUI Dialog
         self.main.mainloop()
 
+    @staticmethod
+    def fill_textbox(setting_name, set_val, val):
+        item = global_objs[setting_name].grab_item(val)
+
+        if val and isinstance(item, ShelfHandle):
+            set_val.set(item.decrypt_text())
+
+    def fill_gui(self):
+        self.fill_textbox('Settings', self.server, 'Server')
+        self.fill_textbox('Settings', self.database, 'Database')
+        self.fill_textbox('Local_Settings', self.w1s, 'W1S_TBL')
+        self.fill_textbox('Local_Settings', self.w2s, 'W2S_TBL')
+        self.fill_textbox('Local_Settings', self.w3s, 'W3S_TBL')
+        self.fill_textbox('Local_Settings', self.w4s, 'W4S_TBL')
+        self.fill_textbox('Local_Settings', self.we, 'WE_TBL')
+        self.fill_textbox('Local_Settings', self.wne, 'WNE_TBL')
+
     def save_settings(self):
-        print('saving settings')
+        if not self.w1s.get():
+            messagebox.showerror('W1S Empty Error!', 'No value has been inputed for W1S TBL (Worksheet One Staging)',
+                                 parent=self.main)
+        elif not self.w2s.get():
+            messagebox.showerror('W2S Empty Error!', 'No value has been inputed for W2S TBL (Worksheet Two Staging)',
+                                 parent=self.main)
+        elif not self.w3s.get():
+            messagebox.showerror('W3S Empty Error!', 'No value has been inputed for W3S TBL (Worksheet Three Staging)',
+                                 parent=self.main)
+        elif not self.w4s.get():
+            messagebox.showerror('W4S Empty Error!', 'No value has been inputed for W4S TBL (Worksheet Four Staging)',
+                                 parent=self.main)
+        elif not self.server.get():
+            messagebox.showerror('Server Empty Error!', 'No value has been inputed for Server',
+                                 parent=self.main)
+        elif not self.database.get():
+            messagebox.showerror('Database Empty Error!', 'No value has been inputed for Database',
+                                 parent=self.main)
+        elif not self.we.get():
+            messagebox.showerror('WE Empty Error!', 'No value has been inputed for WE TBL (Workbook Errors)',
+                                 parent=self.main)
+        elif not self.wne.get():
+            messagebox.showerror('WNE Empty Error!', 'No value has been inputed for WNE TBL (Workbook Norm Errors)',
+                                 parent=self.main)
+        else:
+            global_objs['Local_Settings'].add_item(key='Server', val=self.server.get(), encrypt=True)
+            global_objs['Local_Settings'].add_item(key='Database', val=self.server.get(), encrypt=True)
+            global_objs['Local_Settings'].add_item(key='W1S_TBL', val=self.w1s.get(), encrypt=True)
+            global_objs['Local_Settings'].add_item(key='W2S_TBL', val=self.w2s.get(), encrypt=True)
+            global_objs['Local_Settings'].add_item(key='W3S_TBL', val=self.w3s.get(), encrypt=True)
+            global_objs['Local_Settings'].add_item(key='W4S_TBL', val=self.w4s.get(), encrypt=True)
+            global_objs['Local_Settings'].add_item(key='WE_TBL', val=self.we.get(), encrypt=True)
+            global_objs['Local_Settings'].add_item(key='WNE_TBL', val=self.wne.get(), encrypt=True)
 
     def cancel(self):
         self.main.destroy()

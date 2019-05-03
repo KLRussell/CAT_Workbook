@@ -230,29 +230,7 @@ def load_settings():
     if not os.path.exists(processed_dir):
         os.makedirs(processed_dir)
 
-    if not global_objs['Local_Settings'].grab_item('W1S_TBL'):
-        global_objs['Local_Settings'].add_item('W1S_TBL', None,
-                                               'Please input the SQL table for CAT Worksheet One Staging table:')
 
-    if not global_objs['Local_Settings'].grab_item('W2S_TBL'):
-        global_objs['Local_Settings'].add_item('W2S_TBL', None,
-                                               'Please input the SQL table for CAT Worksheet Two Staging table:')
-
-    if not global_objs['Local_Settings'].grab_item('W3S_TBL'):
-        global_objs['Local_Settings'].add_item('W3S_TBL', None,
-                                               'Please input the SQL table for CAT Worksheet Three Staging table:')
-
-    if not global_objs['Local_Settings'].grab_item('W4S_TBL'):
-        global_objs['Local_Settings'].add_item('W4S_TBL', None,
-                                               'Please input the SQL table for CAT Worksheet Four Staging table:')
-
-    if not global_objs['Local_Settings'].grab_item('WE_TBL'):
-        global_objs['Local_Settings'].add_item('WE_TBL', None,
-                                               'Please input the SQL table for Workbook Errors table:')
-
-    if not global_objs['Local_Settings'].grab_item('WNE_TBL'):
-        global_objs['Local_Settings'].add_item('WNE_TBL', None,
-                                               'Please input the SQL table for Workbook Norm Errors table:')
 
 
 if __name__ == '__main__':
