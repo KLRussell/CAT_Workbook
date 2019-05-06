@@ -15,7 +15,8 @@ import traceback
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 main_dir = os.path.dirname(curr_dir)
 process_dir = os.path.join(main_dir, '02_To_Process')
-processed_dir = os.path.join(main_dir, '03_Processed')
+success_dir = os.path.join(main_dir, '03_Processed', '01_Success')
+failed_dir = os.path.join(main_dir, '03_Processed', '01_Failed_Upload')
 errors_dir = os.path.join(main_dir, '04_Errors')
 global_objs = grabobjs(main_dir)
 
@@ -61,13 +62,12 @@ class CATWorkbook:
 
     def migrate_file(self, processed=True):
         if processed:
-            global_objs['Event_Log'].write_log('Upload successful. Migrating file to Processed folder')
-            os.rename(os.path.join(process_dir, self.file), os.path.join(processed_dir, self.file))
+            global_objs['Event_Log'].write_log('Upload successful. Migrating file to 03_Processed\\01_Success folder')
+            os.rename(os.path.join(process_dir, self.file), os.path.join(success_dir, self.file))
         else:
             global_objs['Event_Log'].write_log(
-                'Migrating file to Processed folder as Upload_Error_{0}'.format(self.file))
-            os.rename(os.path.join(process_dir, self.file), os.path.join(processed_dir,
-                                                                         'Upload_Error_{0}'.format(self.file)))
+                'Failed Upload! Migrating file to 03_Processed\\02_Failed_Upload folder')
+            os.rename(os.path.join(process_dir, self.file), os.path.join(failed_dir, self.file))
 
 
 class ErrorProcessing:
