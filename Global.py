@@ -487,6 +487,7 @@ class SQLHandle:
                         index=False,
                         chunksize=1000
                     )
+                return True
             except:
                 self.close()
                 if self.logobj:

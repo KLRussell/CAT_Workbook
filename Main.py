@@ -55,8 +55,7 @@ class CATWorkbook:
                 return False
 
             global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
-            self.asql.upload(self.df, table, index=False)
-            return True
+            return self.asql.upload(self.df, table, index=False)
         except:
             return False
 
