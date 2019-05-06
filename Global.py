@@ -272,6 +272,9 @@ class LogHandle:
 
 
 class SQLHandle:
+    server = None
+    database = None
+    dsn = None
     conn_type = None
     conn_str = None
     session = False
@@ -281,9 +284,12 @@ class SQLHandle:
 
     def __init__(self, settingsobj=None, server=None, database=None, dsn=None, accdb_file=None):
         if settingsobj:
-            self.server = settingsobj.grab_item('Server')
-            self.database = settingsobj.grab_item('Database')
-            self.dsn = settingsobj.grab_item('DSN')
+            if settingsobj.grab_item('Server'):
+                self.server = settingsobj.grab_item('Server').decrypt_text()
+            if settingsobj.grab_item('Database'):
+                self.database = settingsobj.grab_item('Database').decrypt_text()
+            if settingsobj.grab_item('DSN'):
+                self.dsn = settingsobj.grab_item('DSN').decrypt_text()
         elif server and database:
             self.server = server
             self.database = database
@@ -296,9 +302,9 @@ class SQLHandle:
 
     def change_config(self, settingsobj=None, server=None, database=None, dsn=None, accdb_file=None):
         if settingsobj:
-            self.server = settingsobj.grab_item('Server')
-            self.database = settingsobj.grab_item('Database')
-            self.dsn = settingsobj.grab_item('DSN')
+            self.server = settingsobj.grab_item('Server').decrypt_text()
+            self.database = settingsobj.grab_item('Database').decrypt_text()
+            self.dsn = settingsobj.grab_item('DSN').decrypt_text()
         elif server and database:
             self.server = server
             self.database = database
@@ -345,7 +351,6 @@ class SQLHandle:
             if self.conn_type == 'alch':
                 self.engine = mysql.create_engine(self.conn_str)
                 obj = self.engine.execute(mysql.text(myquery))
-
                 if obj._saved_cursor.arraysize > 0:
                     self.close()
                     return True

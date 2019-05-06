@@ -41,19 +41,19 @@ class CATWorkbook:
     def upload(self):
         try:
             if self.sheet_name == 'Sheet1':
-                table = global_objs['Local_Settings'].grab_item('W1S_TBL')
+                table = global_objs['Local_Settings'].grab_item('W1S_TBL').decrypt_text()
                 global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
                 self.asql.upload(self.df, table, index=False)
             elif self.sheet_name == 'Sheet2':
-                table = global_objs['Local_Settings'].grab_item('W2S_TBL')
+                table = global_objs['Local_Settings'].grab_item('W2S_TBL').decrypt_text()
                 global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
                 self.asql.upload(self.df, table, index=False)
             elif self.sheet_name == 'Sheet3':
-                table = global_objs['Local_Settings'].grab_item('W3S_TBL')
+                table = global_objs['Local_Settings'].grab_item('W3S_TBL').decrypt_text()
                 global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
                 self.asql.upload(self.df, table, index=False)
             elif self.sheet_name == 'Sheet4':
-                table = global_objs['Local_Settings'].grab_item('W4S_TBL')
+                table = global_objs['Local_Settings'].grab_item('W4S_TBL').decrypt_text()
                 global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
                 self.asql.upload(self.df, table, index=False)
             else:
@@ -101,8 +101,8 @@ class ErrorProcessing:
             INNER JOIN {1} As WNE
             ON
                 WE.WNE_ID = WNE.WNE_ID
-        '''.format(global_objs['Local_Settings'].grab_item('WE_TBL'),
-                   global_objs['Local_Settings'].grab_item('WNE_TBL')))
+        '''.format(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text(),
+                   global_objs['Local_Settings'].grab_item('WNE_TBL').decrypt_text()))
 
         if self.df.empty:
             return False
@@ -136,7 +136,7 @@ class ErrorProcessing:
             return False
 
     def truncate_tbl(self):
-        self.asql.execute('TRUNCATE TABLE %s' % global_objs['Local_Settings'].grab_item('WE_TBL'))
+        self.asql.execute('TRUNCATE TABLE %s' % global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text())
 
 
 def gen_talk():
@@ -250,17 +250,17 @@ def load_settings():
 
         if not obj.sql_connect():
             mylist.append('network')
-        if not obj.check_table(global_objs['Settings'].grab_item('W1S')):
+        if not obj.check_table(global_objs['Local_Settings'].grab_item('W1S_TBL').decrypt_text()):
             mylist.append('W1S')
-        if not obj.check_table(global_objs['Settings'].grab_item('W2S')):
+        if not obj.check_table(global_objs['Local_Settings'].grab_item('W2S_TBL').decrypt_text()):
             mylist.append('W2S')
-        if not obj.check_table(global_objs['Settings'].grab_item('W3S')):
+        if not obj.check_table(global_objs['Local_Settings'].grab_item('W3S_TBL').decrypt_text()):
             mylist.append('W3S')
-        if not obj.check_table(global_objs['Settings'].grab_item('W4S')):
+        if not obj.check_table(global_objs['Local_Settings'].grab_item('W4S_TBL').decrypt_text()):
             mylist.append('W4S')
-        if not obj.check_table(global_objs['Settings'].grab_item('WE')):
+        if not obj.check_table(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text()):
             mylist.append('WE')
-        if not obj.check_table(global_objs['Settings'].grab_item('WNE')):
+        if not obj.check_table(global_objs['Local_Settings'].grab_item('WNE_TBL').decrypt_text()):
             mylist.append('WNE')
 
         if len(mylist) > 0:
