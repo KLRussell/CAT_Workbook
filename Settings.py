@@ -16,6 +16,7 @@ class SettingsGUI:
         else:
             self.header_text = 'Welcome to Vacuum Settings!\nSettings can be changed below.\nPress save when finished'
 
+        self.asql = global_objs['SQL']
         self.main = Tk()
 
         # GUI Variables
@@ -27,6 +28,42 @@ class SettingsGUI:
         self.w4s = StringVar()
         self.we = StringVar()
         self.wne = StringVar()
+
+    @staticmethod
+    def fill_textbox(setting_list, val, key):
+        assert(key and val and setting_list)
+        item = global_objs[setting_list].grab_item(key)
+
+        if isinstance(item, CryptHandle):
+            val.set(item.decrypt_text())
+
+    @staticmethod
+    def add_setting(setting_list, val, key):
+        assert(key and val and setting_list)
+
+        global_objs[setting_list].del_item(key)
+        global_objs[setting_list].add_item(key=key, val=val, encrypt=True)
+
+    def check_table(self, table):
+        table2 = table.split('.')
+
+        if len(table2) == 2:
+            myresults = self.asql.query('''
+                SELECT
+                    1
+                FROM information_schema.tables
+                WHERE
+                    Table_Schema = '{0}'
+                        AND
+                    Table_Name = '{1}'
+            '''.format(table2[0], table2[1]))
+
+            if myresults.empty:
+                return False
+            else:
+                return True
+        else:
+            return False
 
     def build_gui(self):
         # Set GUI Geometry and GUI Title
@@ -123,31 +160,15 @@ class SettingsGUI:
         # Show GUI Dialog
         self.main.mainloop()
 
-    @staticmethod
-    def fill_textbox(setting_list, val, key):
-        item = global_objs[setting_list].grab_item(key)
-
-        if val and isinstance(item, CryptHandle):
-            val.set(item.decrypt_text())
-
-    @staticmethod
-    def add_setting(setting_list, val, key):
-        item = global_objs[setting_list].grab_item(key)
-
-        if key and item:
-            global_objs[setting_list].del_item(key)
-
-        global_objs[setting_list].add_item(key=key, val=val, encrypt=True)
-
     def fill_gui(self):
-        self.fill_textbox('Settings', self.server.get(), 'Server')
-        self.fill_textbox('Settings', self.database.get(), 'Database')
-        self.fill_textbox('Local_Settings', self.w1s.get(), 'W1S_TBL')
-        self.fill_textbox('Local_Settings', self.w2s.get(), 'W2S_TBL')
-        self.fill_textbox('Local_Settings', self.w3s.get(), 'W3S_TBL')
-        self.fill_textbox('Local_Settings', self.w4s.get(), 'W4S_TBL')
-        self.fill_textbox('Local_Settings', self.we.get(), 'WE_TBL')
-        self.fill_textbox('Local_Settings', self.wne.get(), 'WNE_TBL')
+        self.fill_textbox('Settings', self.server, 'Server')
+        self.fill_textbox('Settings', self.database, 'Database')
+        self.fill_textbox('Local_Settings', self.w1s, 'W1S_TBL')
+        self.fill_textbox('Local_Settings', self.w2s, 'W2S_TBL')
+        self.fill_textbox('Local_Settings', self.w3s, 'W3S_TBL')
+        self.fill_textbox('Local_Settings', self.w4s, 'W4S_TBL')
+        self.fill_textbox('Local_Settings', self.we, 'WE_TBL')
+        self.fill_textbox('Local_Settings', self.wne, 'WNE_TBL')
 
     def save_settings(self):
         if not self.w1s.get():
@@ -177,14 +198,47 @@ class SettingsGUI:
         else:
             self.add_setting('Settings', self.server.get(), 'Server')
             self.add_setting('Settings', self.database.get(), 'Database')
-            self.add_setting('Local_Settings', self.w1s.get(), 'W1S_TBL')
-            self.add_setting('Local_Settings', self.w2s.get(), 'W2S_TBL')
-            self.add_setting('Local_Settings', self.w3s.get(), 'W3S_TBL')
-            self.add_setting('Local_Settings', self.w4s.get(), 'W4S_TBL')
-            self.add_setting('Local_Settings', self.we.get(), 'WE_TBL')
-            self.add_setting('Local_Settings', self.wne.get(), 'WNE_TBL')
+            self.asql.change_config(server=self.server.get(), database=self.database.get())
 
-            self.main.destroy()
+            if self.asql.test_conn('alch'):
+                self.asql.connect('alch')
+
+                if not self.check_table(self.w1s.get()):
+                    messagebox.showerror('Invalid W1S Table!',
+                                         'W1S, Worksheet One Staging, table does not exist in sql server',
+                                         parent=self.main)
+                elif not self.check_table(self.w2s.get()):
+                    messagebox.showerror('Invalid W2S Table!',
+                                         'W2S, Worksheet Two Staging, table does not exist in sql server',
+                                         parent=self.main)
+                elif not self.check_table(self.w3s.get()):
+                    messagebox.showerror('Invalid W3S Table!',
+                                         'W3S, Worksheet Three Staging, table does not exist in sql server',
+                                         parent=self.main)
+                elif not self.check_table(self.w4s.get()):
+                    messagebox.showerror('Invalid W4S Table!',
+                                         'W4S, Worksheet Four Staging, table does not exist in sql server',
+                                         parent=self.main)
+                elif not self.check_table(self.we.get()):
+                    messagebox.showerror('Invalid WE Table!',
+                                         'WE, Workbook Errors, table does not exist in sql server',
+                                         parent=self.main)
+                elif not self.check_table(self.wne.get()):
+                    messagebox.showerror('Invalid WNE Table!',
+                                         'WNE, Workbook Norm Errors, table does not exist in sql server',
+                                         parent=self.main)
+                else:
+                    self.add_setting('Local_Settings', self.w1s.get(), 'W1S_TBL')
+                    self.add_setting('Local_Settings', self.w2s.get(), 'W2S_TBL')
+                    self.add_setting('Local_Settings', self.w3s.get(), 'W3S_TBL')
+                    self.add_setting('Local_Settings', self.w4s.get(), 'W4S_TBL')
+                    self.add_setting('Local_Settings', self.we.get(), 'WE_TBL')
+                    self.add_setting('Local_Settings', self.wne.get(), 'WNE_TBL')
+
+                    self.main.destroy()
+            else:
+                messagebox.showerror('Network Test Error!', 'Unable to connect to {0} server and {1} database',
+                                     parent=self.main)
 
     def cancel(self):
         self.main.destroy()

@@ -385,7 +385,7 @@ class SQLHandle:
         if self.test_conn():
             try:
                 if self.conn_type == 'alch':
-                    self.engine = mysql.create_engine(self.conn_str).execution_options(autocommit=True)
+                    self.engine = mysql.create_engine(self.conn_str)
                 else:
                     self.conn = pyodbc.connect(self.conn_str, autocommit=True)
                     self.cursor = self.conn.cursor()
@@ -430,7 +430,7 @@ class SQLHandle:
             try:
                 dataframe.to_sql(
                     sqltable,
-                    self.engine,
+                    self.engine.execution_options(autocommit=True),
                     if_exists='replace',
                 )
             except:
@@ -449,7 +449,7 @@ class SQLHandle:
                 if len(mytbl) > 1:
                     dataframe.to_sql(
                         mytbl[1],
-                        self.engine,
+                        self.engine.execution_options(autocommit=True),
                         schema=mytbl[0],
                         if_exists='append',
                         index=index,
@@ -459,7 +459,7 @@ class SQLHandle:
                 else:
                     dataframe.to_sql(
                         mytbl[0],
-                        self.engine,
+                        self.engine.execution_options(autocommit=True),
                         if_exists='replace',
                         index=False,
                         chunksize=1000
@@ -489,7 +489,7 @@ class SQLHandle:
     def execute(self, query):
         try:
             if self.conn_type == 'alch':
-                self.engine.execute(mysql.text(query))
+                self.engine.execution_options(autocommit=True).execute(mysql.text(query))
             else:
                 self.cursor.execute(query)
 
