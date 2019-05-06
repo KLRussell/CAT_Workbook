@@ -135,7 +135,7 @@ class ErrorProcessing:
 
 
 def gen_talk():
-    f = open(os.path.join(curr_dir, 'random_talk.txt'), 'r')
+    f = open(os.path.join(curr_dir, 'Vacuum_Talk.txt'), 'r')
     lines = f.readlines()
     talkid = random.randint(0, len(lines) - 1)
 
