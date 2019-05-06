@@ -355,6 +355,7 @@ class SQLHandle:
                 self.conn.commit()
 
                 if self.conn_type == 'accdb' and len(self.get_accdb_tables()) > 0:
+                    self.close()
                     return True
                 else:
                     df = sql.read_sql(myquery, self.conn)
@@ -362,7 +363,7 @@ class SQLHandle:
                     if len(df) > 0:
                         self.close()
                         return True
-        finally:
+        except:
             self.close()
             return False
 
