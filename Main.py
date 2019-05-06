@@ -42,25 +42,20 @@ class CATWorkbook:
         try:
             if self.sheet_name == 'Sheet1':
                 table = global_objs['Local_Settings'].grab_item('W1S_TBL').decrypt_text()
-                global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
-                self.asql.upload(self.df, table, index=False)
             elif self.sheet_name == 'Sheet2':
                 table = global_objs['Local_Settings'].grab_item('W2S_TBL').decrypt_text()
-                global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
-                self.asql.upload(self.df, table, index=False)
             elif self.sheet_name == 'Sheet3':
                 table = global_objs['Local_Settings'].grab_item('W3S_TBL').decrypt_text()
-                global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
-                self.asql.upload(self.df, table, index=False)
             elif self.sheet_name == 'Sheet4':
                 table = global_objs['Local_Settings'].grab_item('W4S_TBL').decrypt_text()
-                global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
-                self.asql.upload(self.df, table, index=False)
             else:
                 global_objs['Event_Log'].write_log(
                     'Unable to upload {0}. Spreadsheet has invalid Sheet_Name ''{1}'''.format(self.file,
                                                                                               self.sheet_name))
                 return False
+
+            global_objs['Event_Log'].write_log('Uploading {0} items to {1} SQL table'.format(len(self.df), table))
+            self.asql.upload(self.df, table, index=False)
             return True
         except:
             return False

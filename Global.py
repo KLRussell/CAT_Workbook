@@ -435,7 +435,7 @@ class SQLHandle:
             try:
                 dataframe.to_sql(
                     sqltable,
-                    self.engine.execution_options(autocommit=True),
+                    self.engine,
                     if_exists='replace',
                 )
             except:
@@ -454,7 +454,7 @@ class SQLHandle:
                 if len(mytbl) > 1:
                     dataframe.to_sql(
                         mytbl[1],
-                        self.engine.execution_options(autocommit=True),
+                        self.engine,
                         schema=mytbl[0],
                         if_exists='append',
                         index=index,
@@ -464,7 +464,7 @@ class SQLHandle:
                 else:
                     dataframe.to_sql(
                         mytbl[0],
-                        self.engine.execution_options(autocommit=True),
+                        self.engine,
                         if_exists='replace',
                         index=False,
                         chunksize=1000
