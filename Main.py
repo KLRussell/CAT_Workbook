@@ -1,6 +1,7 @@
 from Global import grabobjs
 from Global import XMLParseClass
 from Global import XMLAppendClass
+from Settings import SettingsGUI
 from time import sleep
 
 import os
@@ -221,6 +222,8 @@ def proc_errors():
 
 
 def load_settings():
+    obj = SettingsGUI()
+
     if not os.path.exists(errors_dir):
         os.makedirs(errors_dir)
 
@@ -230,11 +233,45 @@ def load_settings():
     if not os.path.exists(processed_dir):
         os.makedirs(processed_dir)
 
+    if not global_objs['Settings'].grab_item('Server')\
+            or not global_objs['Settings'].grab_item('Database') or not global_objs['Settings'].grab_item('W1S')\
+            or not global_objs['Settings'].grab_item('W2S') or not global_objs['Settings'].grab_item('W3S')\
+            or not global_objs['Settings'].grab_item('WE') or not global_objs['Settings'].grab_item('WNE'):
+        header_text = 'Welcome to Vacuum Settings!\nSettings haven''t been established.\nPlease fill out all empty fields below:'
+        obj.build_gui(header_text)
+        del obj
+        return False
+    else:
+        mylist = []
 
+        if not obj.sql_connect():
+            mylist.append('network')
+        if not obj.check_table(global_objs['Settings'].grab_item('W1S')):
+            mylist.append('W1S')
+        if not obj.check_table(global_objs['Settings'].grab_item('W2S')):
+            mylist.append('W2S')
+        if not obj.check_table(global_objs['Settings'].grab_item('W3S')):
+            mylist.append('W3S')
+        if not obj.check_table(global_objs['Settings'].grab_item('W4S')):
+            mylist.append('W4S')
+        if not obj.check_table(global_objs['Settings'].grab_item('WE')):
+            mylist.append('WE')
+        if not obj.check_table(global_objs['Settings'].grab_item('WNE')):
+            mylist.append('WNE')
+
+        if len(mylist) > 0:
+            header_text = 'Welcome to Vacuum Settings!\n{0} settings are invalid.\nPlease fix the network settings below:'\
+                .format(', '.join(mylist))
+            obj.build_gui(header_text)
+            del obj
+            return False
+    del obj
+    return True
 
 
 if __name__ == '__main__':
-    load_settings()
+    while not load_settings():
+        sleep(1)
 
     try:
         global_objs['SQL'].connect('alch')

@@ -10,11 +10,8 @@ global_objs = grabobjs(main_dir)
 
 
 class SettingsGUI:
-    def __init__(self, header=None):
-        if header:
-            self.header_text = header
-        else:
-            self.header_text = 'Welcome to Vacuum Settings!\nSettings can be changed below.\nPress save when finished'
+    def __init__(self):
+        self.header_text = 'Welcome to Vacuum Settings!\nSettings can be changed below.\nPress save when finished'
 
         self.asql = global_objs['SQL']
         self.main = Tk()
@@ -65,7 +62,11 @@ class SettingsGUI:
         else:
             return False
 
-    def build_gui(self):
+    def build_gui(self, header=None):
+        # Change to custom header title if specified
+        if header:
+            self.header_text = header
+
         # Set GUI Geometry and GUI Title
         self.main.geometry('444x285+500+150')
         self.main.title('Vacuum Settings')
@@ -170,6 +171,16 @@ class SettingsGUI:
         self.fill_textbox('Local_Settings', self.we, 'WE_TBL')
         self.fill_textbox('Local_Settings', self.wne, 'WNE_TBL')
 
+    def sql_connect(self):
+        if self.asql.test_conn('alch'):
+            self.asql.connect('alch')
+            return True
+        else:
+            return False
+
+    def sql_close(self):
+        self.asql.close()
+
     def save_settings(self):
         if not self.w1s.get():
             messagebox.showerror('W1S Empty Error!', 'No value has been inputed for W1S TBL (Worksheet One Staging)',
@@ -196,11 +207,10 @@ class SettingsGUI:
             messagebox.showerror('WNE Empty Error!', 'No value has been inputed for WNE TBL (Workbook Norm Errors)',
                                  parent=self.main)
         else:
-            self.add_setting('Settings', self.server.get(), 'Server')
-            self.add_setting('Settings', self.database.get(), 'Database')
-            self.asql.change_config(server=self.server.get(), database=self.database.get())
-
             if self.asql.test_conn('alch'):
+                self.add_setting('Settings', self.server.get(), 'Server')
+                self.add_setting('Settings', self.database.get(), 'Database')
+                self.asql.change_config(server=self.server.get(), database=self.database.get())
                 self.asql.connect('alch')
 
                 if not self.check_table(self.w1s.get()):
@@ -245,6 +255,5 @@ class SettingsGUI:
 
 
 if __name__ == '__main__':
-    header_text = 'Welcome to Vacuum Settings!\nSettings haven''t been established.\nPlease fill out all empty fields below:'
     obj = SettingsGUI()
     obj.build_gui()
