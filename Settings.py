@@ -1,15 +1,18 @@
+# Global Module import
 from tkinter import *
 from tkinter import messagebox
 from Global import grabobjs
 from Global import CryptHandle
 import os
 
+# Global Variable declaration
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 main_dir = os.path.dirname(curr_dir)
 global_objs = grabobjs(main_dir)
 
 
 class SettingsGUI:
+    # Function that is executed upon creation of SettingsGUI class
     def __init__(self):
         self.header_text = 'Welcome to Vacuum Settings!\nSettings can be changed below.\nPress save when finished'
 
@@ -26,6 +29,7 @@ class SettingsGUI:
         self.we = StringVar()
         self.wne = StringVar()
 
+    # Static function to fill textbox in GUI
     @staticmethod
     def fill_textbox(setting_list, val, key):
         assert(key and val and setting_list)
@@ -34,6 +38,7 @@ class SettingsGUI:
         if isinstance(item, CryptHandle):
             val.set(item.decrypt_text())
 
+    # static function to add setting to Local_Settings shelf files
     @staticmethod
     def add_setting(setting_list, val, key):
         assert(key and val and setting_list)
@@ -41,6 +46,7 @@ class SettingsGUI:
         global_objs[setting_list].del_item(key)
         global_objs[setting_list].add_item(key=key, val=val, encrypt=True)
 
+    # Function to validate whether a SQL table exists in SQL server
     def check_table(self, table):
         table2 = table.split('.')
 
@@ -62,6 +68,7 @@ class SettingsGUI:
         else:
             return False
 
+    # Function to build GUI for settings
     def build_gui(self, header=None):
         # Change to custom header title if specified
         if header:
@@ -161,6 +168,7 @@ class SettingsGUI:
         # Show GUI Dialog
         self.main.mainloop()
 
+    # Function to fill GUI textbox fields
     def fill_gui(self):
         self.fill_textbox('Settings', self.server, 'Server')
         self.fill_textbox('Settings', self.database, 'Database')
@@ -171,6 +179,7 @@ class SettingsGUI:
         self.fill_textbox('Local_Settings', self.we, 'WE_TBL')
         self.fill_textbox('Local_Settings', self.wne, 'WNE_TBL')
 
+    # Function to connect to SQL connection for this class
     def sql_connect(self):
         if self.asql.test_conn('alch'):
             self.asql.connect('alch')
@@ -178,9 +187,11 @@ class SettingsGUI:
         else:
             return False
 
+    # Function to close SQL connection for this class
     def sql_close(self):
         self.asql.close()
 
+    # Function to save settings when the Save Settings button is pressed
     def save_settings(self):
         if not self.w1s.get():
             messagebox.showerror('W1S Empty Error!', 'No value has been inputed for W1S TBL (Worksheet One Staging)',
@@ -250,10 +261,12 @@ class SettingsGUI:
                 messagebox.showerror('Network Test Error!', 'Unable to connect to {0} server and {1} database',
                                      parent=self.main)
 
+    # Function to destroy GUI when Cancel button is pressed
     def cancel(self):
         self.main.destroy()
 
 
+# Main loop routine to create GUI Settings
 if __name__ == '__main__':
     obj = SettingsGUI()
     obj.build_gui()
