@@ -234,9 +234,12 @@ def load_settings():
         os.makedirs(processed_dir)
 
     if not global_objs['Settings'].grab_item('Server')\
-            or not global_objs['Settings'].grab_item('Database') or not global_objs['Settings'].grab_item('W1S')\
-            or not global_objs['Settings'].grab_item('W2S') or not global_objs['Settings'].grab_item('W3S')\
-            or not global_objs['Settings'].grab_item('WE') or not global_objs['Settings'].grab_item('WNE'):
+            or not global_objs['Settings'].grab_item('Database')\
+            or not global_objs['Local_Settings'].grab_item('W1S_TBL')\
+            or not global_objs['Local_Settings'].grab_item('W2S_TBL')\
+            or not global_objs['Local_Settings'].grab_item('W3S_TBL')\
+            or not global_objs['Local_Settings'].grab_item('WE_TBL')\
+            or not global_objs['Local_Settings'].grab_item('WNE_TBL'):
         header_text = 'Welcome to Vacuum Settings!\nSettings haven''t been established.\nPlease fill out all empty fields below:'
         obj.build_gui(header_text)
         del obj
@@ -270,42 +273,40 @@ def load_settings():
 
 
 if __name__ == '__main__':
-    while not load_settings():
-        sleep(1)
+    if load_settings():
+        try:
+            global_objs['SQL'].connect('alch')
+        finally:
+            global_objs['SQL'].close()
 
-    try:
-        global_objs['SQL'].connect('alch')
-    finally:
-        global_objs['SQL'].close()
+        global_objs['Event_Log'].write_log('')
+        global_objs['Event_Log'].write_log('Starting Vacuum...')
 
-    global_objs['Event_Log'].write_log('')
-    global_objs['Event_Log'].write_log('Starting Vacuum...')
+        to_continue = False
 
-    to_continue = False
+        try:
+            while 1 != 0:
+                has_updates = None
+                global_objs['Event_Log'].write_log('Vacuum sniffing floor for crumbs...')
+                proc_errors()
 
-    try:
-        while 1 != 0:
-            has_updates = None
-            global_objs['Event_Log'].write_log('Vacuum sniffing floor for crumbs...')
-            proc_errors()
+                while has_updates is None:
+                    has_updates = find_updates()
+                    rand = random.randint(1, 10000000000)
+                    sleep(1)
 
-            while has_updates is None:
-                has_updates = find_updates()
-                rand = random.randint(1, 10000000000)
-                sleep(1)
+                    if to_continue:
+                        global_objs['Event_Log'].write_log('')
+                        to_continue = False
+                    elif rand % 777 == 0:
+                        gen_talk()
 
-                if to_continue:
-                    global_objs['Event_Log'].write_log('')
-                    to_continue = False
-                elif rand % 777 == 0:
-                    gen_talk()
+                proc_updates(has_updates)
+                to_continue = True
+        except:
+            global_objs['Event_Log'].write_log(traceback.format_exc(), 'critical')
 
-            proc_updates(has_updates)
-            to_continue = True
-    except:
-        global_objs['Event_Log'].write_log(traceback.format_exc(), 'critical')
-
-    finally:
-        os.system('pause')
+        finally:
+            os.system('pause')
 
 gc.collect()
