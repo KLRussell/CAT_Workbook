@@ -272,10 +272,6 @@ class LogHandle:
 
 
 class SQLHandle:
-    server = None
-    database = None
-    dsn = None
-    accdb_file = None
     conn_type = None
     conn_str = None
     session = False
@@ -283,74 +279,65 @@ class SQLHandle:
     conn = None
     cursor = None
 
-    def __init__(self, settingsobj):
+    def __init__(self, settingsobj=None, server=None, database=None, dsn=None, accdb_file=None):
         if settingsobj:
-            self.settingsobj = settingsobj
+            self.server = settingsobj.grab_item('Server')
+            self.database = settingsobj.grab_item('Database')
+            self.dsn = settingsobj.grab_item('DSN')
+        elif server and database:
+            self.server = server
+            self.database = database
+        elif dsn:
+            self.dsn = dsn
+        elif accdb_file:
+            self.accdb_file = accdb_file
         else:
-            raise Exception('Settings object not included in parameter')
+            raise Exception('Invalid connection variables passed')
 
-    def create_conn_str(self, server=None, database=None, dsn=None):
+    def change_config(self, settingsobj=None, server=None, database=None, dsn=None, accdb_file=None):
+        if settingsobj:
+            self.server = settingsobj.grab_item('Server')
+            self.database = settingsobj.grab_item('Database')
+            self.dsn = settingsobj.grab_item('DSN')
+        elif server and database:
+            self.server = server
+            self.database = database
+        elif dsn:
+            self.dsn = dsn
+        elif accdb_file:
+            self.accdb_file = accdb_file
+        else:
+            raise Exception('Invalid connection variables passed')
+
+    def create_conn_str(self):
         if self.conn_type == 'alch':
+            assert(self.server and self.database)
             p = quote_plus(
                 'DRIVER={};PORT={};SERVER={};DATABASE={};Trusted_Connection=yes;'
-                    .format('{SQL Server Native Client 11.0}', '1433', server, database))
+                    .format('{SQL Server Native Client 11.0}', '1433', self.server, self.database))
 
             self.conn_str = '{}+pyodbc:///?odbc_connect={}'.format('mssql', p)
         elif self.conn_type == 'sql':
+            assert(self.server and self.database)
             self.conn_str = 'driver={0};server={1};database={2};autocommit=True;Trusted_Connection=yes'\
-                .format('{SQL Server}', server, database)
+                .format('{SQL Server}', self.server, self.database)
         elif self.conn_type == 'accdb':
+            assert self.accdb_file
             self.conn_str = 'DRIVER={};DBQ={};Exclusive=1'.format('{Microsoft Access Driver (*.mdb, *.accdb)}',
                                                                   self.accdb_file)
         elif self.conn_type == 'dsn':
-            self.conn_str = 'DSN={};DATABASE=default;Trusted_Connection=Yes;'.format(dsn)
+            assert self.dsn
+            self.conn_str = 'DSN={};DATABASE=default;Trusted_Connection=Yes;'.format(self.dsn)
         else:
             raise Exception('Invalid conn_type specified')
 
-    def val_settings(self):
-        if self.conn_type in ['alch', 'sql']:
-            if self.server and self.database:
-                self.create_conn_str(server=self.server, database=self.database)
-            else:
-                if not self.settingsobj.grab_item('Server') and not self.settingsobj.grab_item('Database'):
-                    self.settingsobj.add_item('Server', inputmsg='Please input Server to store in settings:',
-                                              encrypt=True)
-                    self.settingsobj.add_item('Database', inputmsg='Please input Database name to store in settings:',
-                                              encrypt=True)
-
-                self.create_conn_str(server=self.settingsobj.grab_item('Server').decrypt_text()
-                                     , database=self.settingsobj.grab_item('Database').decrypt_text())
-        elif self.conn_type == 'dsn':
-            if self.dsn:
-                self.create_conn_str(dsn=self.dsn)
-            else:
-                if not self.settingsobj.grab_item('DSN').decrypt_text():
-                    self.settingsobj.add_item('DSN', inputmsg='Please input DSN name to store in settings:',
-                                              encrypt=True)
-
-                self.create_conn_str(dsn=self.settingsobj.grab_item('DSN').decrypt_text())
-        else:
-            self.create_conn_str()
-
-    def test_conn(self, conn_type=None, server=None, database=None, dsn=None, accdb_file=None):
+    def test_conn(self, conn_type=None):
         assert(conn_type or self.conn_type)
 
         if conn_type:
             self.conn_type = conn_type
 
-        if server:
-            self.server = server
-
-        if database:
-            self.database = database
-
-        if dsn:
-            self.dsn = dsn
-
-        if accdb_file:
-            self.accdb_file = accdb_file
-
-        self.val_settings()
+        self.create_conn_str()
 
         myquery = "SELECT 1 from sys.sysprocesses"
 
@@ -360,6 +347,7 @@ class SQLHandle:
                 obj = self.engine.execute(mysql.text(myquery))
 
                 if obj._saved_cursor.arraysize > 0:
+                    self.close()
                     return True
             else:
                 self.conn = pyodbc.connect(self.conn_str)
@@ -372,34 +360,11 @@ class SQLHandle:
                     df = sql.read_sql(myquery, self.conn)
 
                     if len(df) > 0:
+                        self.close()
                         return True
-
         finally:
-            if self.conn_type in ('alch', 'sql'):
-                self.server = None
-                self.database = None
-            elif self.conn_type == 'accdb':
-                self.accdb_file = None
-            else:
-                self.dsn = None
-
             self.close()
-
-    def conn_chk(self):
-        exit_loop = False
-
-        while not exit_loop:
-            if self.test_conn():
-                exit_loop = True
-            else:
-                if self.conn_type in ('alch', 'sql'):
-                    if self.settingsobj.grab_item('Server'):
-                        self.settingsobj.del_item('Server')
-                    if self.settingsobj.grab_item('Database'):
-                        self.settingsobj.del_item('Database')
-                elif self.conn_type == 'dsn':
-                    if self.settingsobj.grab_item('DSN'):
-                        self.settingsobj.del_item('DSN')
+            return False
 
     def get_accdb_tables(self):
         if self.conn_type == 'accdb':
@@ -412,20 +377,35 @@ class SQLHandle:
 
             return mylist
 
-    def connect(self, conn_type, server=None, database=None, dsn=None, accdb_file=None):
+    def connect(self, conn_type):
+        assert (conn_type or self.conn_type)
         self.conn_type = conn_type
-        self.server = server
-        self.database = database
-        self.dsn = dsn
-        self.accdb_file = accdb_file
-        self.conn_chk()
 
-        if self.conn_type == 'alch':
-            self.engine = mysql.create_engine(self.conn_str)
+        if self.test_conn():
+            try:
+                if self.conn_type == 'alch':
+                    self.engine = mysql.create_engine(self.conn_str).execution_options(autocommit=True)
+                else:
+                    self.conn = pyodbc.connect(self.conn_str, autocommit=True)
+                    self.cursor = self.conn.cursor()
+                    self.conn.commit()
+            except:
+                self.close()
+                raise Exception('Error 2 - Failed connection')
+        elif self.conn_type in ('alch', 'sql'):
+            self.server = None
+            self.database = None
+            raise Exception(
+                'Error 1 - Failed test connection to SQL Server. Server name {0} or database name {1} is incorrect'
+                    .format(self.server, self.database))
+        elif self.conn_type == 'accdb':
+            self.accdb_file = None
+            raise Exception(
+                'Error 1 - Failed test connection to access databse file {0}'.format(
+                    self.accdb_file))
         else:
-            self.conn = pyodbc.connect(self.conn_str, autocommit=True)
-            self.cursor = self.conn.cursor()
-            self.conn.commit()
+            self.dsn = None
+            raise Exception('Error 1 - Failed test connection to DSN connection {0}'.format(self.dsn))
 
     def close(self):
         if self.conn_type == 'alch':
@@ -436,18 +416,24 @@ class SQLHandle:
 
     def createsession(self):
         if self.conn_type == 'alch':
-            self.engine = sessionmaker(bind=self.engine)
-            self.engine = self.engine()
-            self.engine._model_changes = {}
-            self.session = True
+            try:
+                self.engine = sessionmaker(bind=self.engine)
+                self.engine = self.engine()
+                self.engine._model_changes = {}
+                self.session = True
+            except:
+                self.close()
 
     def createtable(self, dataframe, sqltable):
         if self.conn_type == 'alch' and not self.session:
-            dataframe.to_sql(
-                sqltable,
-                self.engine,
-                if_exists='replace',
-            )
+            try:
+                dataframe.to_sql(
+                    sqltable,
+                    self.engine,
+                    if_exists='replace',
+                )
+            except:
+                self.close()
 
     def grabengine(self):
         if self.conn_type == 'alch':
@@ -458,25 +444,27 @@ class SQLHandle:
     def upload(self, dataframe, sqltable, index=True, index_label='linenumber'):
         if self.conn_type == 'alch' and not self.session:
             mytbl = sqltable.split(".")
-
-            if len(mytbl) > 1:
-                dataframe.to_sql(
-                    mytbl[1],
-                    self.engine,
-                    schema=mytbl[0],
-                    if_exists='append',
-                    index=index,
-                    index_label=index_label,
-                    chunksize=1000
-                )
-            else:
-                dataframe.to_sql(
-                    mytbl[0],
-                    self.engine,
-                    if_exists='replace',
-                    index=False,
-                    chunksize=1000
-                )
+            try:
+                if len(mytbl) > 1:
+                    dataframe.to_sql(
+                        mytbl[1],
+                        self.engine,
+                        schema=mytbl[0],
+                        if_exists='append',
+                        index=index,
+                        index_label=index_label,
+                        chunksize=1000
+                    )
+                else:
+                    dataframe.to_sql(
+                        mytbl[0],
+                        self.engine,
+                        if_exists='replace',
+                        index=False,
+                        chunksize=1000
+                    )
+            except:
+                self.close()
 
     def query(self, query):
         try:
@@ -495,18 +483,18 @@ class SQLHandle:
 
         except ValueError as a:
             print('\t[-] {} : SQL Query failed.'.format(a))
-            pass
+            self.close()
 
     def execute(self, query):
         try:
             if self.conn_type == 'alch':
-                self.engine.execution_options(autocommit=True).execute(mysql.text(query))
+                self.engine.execute(mysql.text(query))
             else:
                 self.cursor.execute(query)
 
         except ValueError as a:
             print('\t[-] {} : SQL Execute failed.'.format(a))
-            pass
+            self.close()
 
 
 class ErrHandle:
