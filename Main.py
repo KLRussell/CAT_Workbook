@@ -15,8 +15,8 @@ import traceback
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 main_dir = os.path.dirname(curr_dir)
 process_dir = os.path.join(main_dir, '02_To_Process')
-success_dir = os.path.join(main_dir, '03_Processed', '01_Success')
-failed_dir = os.path.join(main_dir, '03_Processed', '01_Failed_Upload')
+uploaded_dir = os.path.join(main_dir, '03_Processed', '01_Uploaded')
+failed_dir = os.path.join(main_dir, '03_Processed', '02_Failed')
 errors_dir = os.path.join(main_dir, '04_Errors')
 global_objs = grabobjs(main_dir)
 
@@ -62,11 +62,11 @@ class CATWorkbook:
 
     def migrate_file(self, processed=True):
         if processed:
-            global_objs['Event_Log'].write_log('Upload successful. Migrating file to 03_Processed\\01_Success folder')
-            os.rename(os.path.join(process_dir, self.file), os.path.join(success_dir, self.file))
+            global_objs['Event_Log'].write_log('Upload successful. Migrating file to 03_Processed\\01_Uploaded folder')
+            os.rename(os.path.join(process_dir, self.file), os.path.join(uploaded_dir, self.file))
         else:
             global_objs['Event_Log'].write_log(
-                'Failed Upload! Migrating file to 03_Processed\\02_Failed_Upload folder')
+                'Failed Upload! Migrating file to 03_Processed\\02_Failed folder')
             os.rename(os.path.join(process_dir, self.file), os.path.join(failed_dir, self.file))
 
 
@@ -107,7 +107,7 @@ class ErrorProcessing:
     def process_errors(self):
         try:
             for source_file in self.df['Source_File'].unique().tolist():
-                xmlobj = XMLParseClass(os.path.join(processed_dir, source_file))
+                xmlobj = XMLParseClass(os.path.join(uploaded_dir, source_file))
                 df = xmlobj.parsexml('./{urn:schemas-microsoft-com:rowset}data/')
                 df['Source_File_ID'] = np.arange(len(df))
                 df = pd.merge(df, self.df, on='Source_File_ID')
@@ -225,8 +225,11 @@ def load_settings():
     if not os.path.exists(process_dir):
         os.makedirs(process_dir)
 
-    if not os.path.exists(processed_dir):
-        os.makedirs(processed_dir)
+    if not os.path.exists(uploaded_dir):
+        os.makedirs(uploaded_dir)
+
+    if not os.path.exists(failed_dir):
+        os.makedirs(failed_dir)
 
     if not global_objs['Settings'].grab_item('Server')\
             or not global_objs['Settings'].grab_item('Database')\
