@@ -204,12 +204,13 @@ def proc_updates(files):
                     finally:
                         obj.close_conn()
                         del obj
-
+                del df
             del xmlobj
         else:
             global_objs['Event_Log'].write_log('Adding new user to CAT Employee table')
             newuser(file)
             os.remove(file)
+        del folder_name, file_name
 
 
 def proc_errors():
@@ -266,8 +267,9 @@ def load_settings():
             header_text = 'Welcome to Vacuum Settings!\n{0} settings are invalid.\nPlease fix the network settings below:'\
                 .format(', '.join(mylist))
             obj.build_gui(header_text)
-            del obj
+            del obj, mylist
             return False
+        del mylist
     del obj
     return True
 
