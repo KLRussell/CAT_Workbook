@@ -6,6 +6,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
+import traceback
 import xml.etree.ElementTree as ET
 import pathlib as pl
 import pandas as pd
@@ -53,7 +54,7 @@ def grabobjs(scriptdir):
             myobjs['Settings'] = ShelfHandle(os.path.join(myinput, 'General_Settings'))
 
         myobjs['Event_Log'] = LogHandle(scriptdir)
-        myobjs['SQL'] = SQLHandle(myobjs['Settings'])
+        myobjs['SQL'] = SQLHandle(logobj=myobjs['Event_Log'], settingsobj=myobjs['Settings'])
         myobjs['Errors'] = ErrHandle(myobjs['Event_Log'])
 
         return myobjs
@@ -282,7 +283,7 @@ class SQLHandle:
     conn = None
     cursor = None
 
-    def __init__(self, settingsobj=None, server=None, database=None, dsn=None, accdb_file=None):
+    def __init__(self, logobj=None, settingsobj=None, server=None, database=None, dsn=None, accdb_file=None):
         if settingsobj:
             if settingsobj.grab_item('Server'):
                 self.server = settingsobj.grab_item('Server').decrypt_text()
@@ -299,6 +300,9 @@ class SQLHandle:
             self.accdb_file = accdb_file
         else:
             raise Exception('Invalid connection variables passed')
+
+        if logobj:
+            self.logobj = logobj
 
     def change_config(self, settingsobj=None, server=None, database=None, dsn=None, accdb_file=None):
         if settingsobj:
@@ -397,7 +401,11 @@ class SQLHandle:
                     self.conn.commit()
             except:
                 self.close()
-                raise Exception('Error 2 - Failed connection')
+                if self.logobj:
+                    self.logobj.write_log(traceback.format_exc(), 'critical')
+                else:
+                    print(traceback.format_exc())
+                raise Exception('Stopping script')
         elif self.conn_type in ('alch', 'sql'):
             self.server = None
             self.database = None
@@ -429,6 +437,11 @@ class SQLHandle:
                 self.session = True
             except:
                 self.close()
+                if self.logobj:
+                    self.logobj.write_log(traceback.format_exc(), 'critical')
+                else:
+                    print(traceback.format_exc())
+                raise Exception('Stopping script')
 
     def createtable(self, dataframe, sqltable):
         if self.conn_type == 'alch' and not self.session:
@@ -440,6 +453,11 @@ class SQLHandle:
                 )
             except:
                 self.close()
+                if self.logobj:
+                    self.logobj.write_log(traceback.format_exc(), 'critical')
+                else:
+                    print(traceback.format_exc())
+                raise Exception('Stopping script')
 
     def grabengine(self):
         if self.conn_type == 'alch':
@@ -471,6 +489,11 @@ class SQLHandle:
                     )
             except:
                 self.close()
+                if self.logobj:
+                    self.logobj.write_log(traceback.format_exc(), 'critical')
+                else:
+                    print(traceback.format_exc())
+                raise Exception('Stopping script')
 
     def query(self, query):
         try:
@@ -487,9 +510,13 @@ class SQLHandle:
                 df = sql.read_sql(query, self.conn)
                 return df
 
-        except ValueError as a:
-            print('\t[-] {} : SQL Query failed.'.format(a))
+        except:
             self.close()
+            if self.logobj:
+                self.logobj.write_log(traceback.format_exc(), 'critical')
+            else:
+                print(traceback.format_exc())
+            raise Exception('Stopping script')
 
     def execute(self, query):
         try:
@@ -498,9 +525,13 @@ class SQLHandle:
             else:
                 self.cursor.execute(query)
 
-        except ValueError as a:
-            print('\t[-] {} : SQL Execute failed.'.format(a))
+        except:
             self.close()
+            if self.logobj:
+                self.logobj.write_log(traceback.format_exc(), 'critical')
+            else:
+                print(traceback.format_exc())
+            raise Exception('Stopping script')
 
 
 class ErrHandle:
