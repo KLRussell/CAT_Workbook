@@ -1,3 +1,4 @@
+# Global Module import
 from Global import grabobjs
 from Global import XMLParseClass
 from Global import XMLAppendClass
@@ -12,6 +13,7 @@ import numpy as np
 import pandas as pd
 import traceback
 
+# Global Variable declaration
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 main_dir = os.path.dirname(curr_dir)
 process_dir = os.path.join(main_dir, '02_To_Process')
@@ -21,13 +23,16 @@ errors_dir = os.path.join(main_dir, '04_Errors')
 global_objs = grabobjs(main_dir)
 
 
+# CATWorkbook Class Function
 class CATWorkbook:
+    # Function that is executed upon creation of CATWorkbook class
     def __init__(self, df, file):
         df['Source_File'] = file
         df['Source_File_ID'] = np.arange(len(df))
         self.sheet_name = df['Sheet_Name'][0]
         del df['Sheet_Name']
 
+        # Opens SQL Connection for class object
         self.asql = global_objs['SQL']
         try:
             self.asql.connect('alch')
@@ -36,9 +41,11 @@ class CATWorkbook:
         finally:
             self.asql.close()
 
+    # Closes SQL connection for class object
     def close_conn(self):
         self.asql.close()
 
+    # Function to upload data into SQL server tables according to CAT Workbook Sheet name
     def upload(self):
         try:
             if self.sheet_name == 'Sheet1':
@@ -60,6 +67,8 @@ class CATWorkbook:
         except:
             return False
 
+    # Migrate files from 02_To_Process to 03_Processed
+    #   (Files may be either 01_Uploaded or 02_Failed according to the success/failure of the upload process)
     def migrate_file(self, processed=True):
         if processed:
             global_objs['Event_Log'].write_log('Upload successful. Migrating file to 03_Processed\\01_Uploaded folder')
@@ -70,9 +79,12 @@ class CATWorkbook:
             os.rename(os.path.join(process_dir, self.file), os.path.join(failed_dir, self.file))
 
 
+# Class object for ErrorProcessing
 class ErrorProcessing:
+    # Private variable declaring for ErrorProcessing class
     df = pd.DataFrame()
 
+    # Function that is executed upon creation of ErrorProcessing class
     def __init__(self):
         self.asql = global_objs['SQL']
         try:
@@ -80,9 +92,11 @@ class ErrorProcessing:
         finally:
             self.asql.close()
 
+    # Closes SQL connection for class object
     def close_conn(self):
         self.asql.close()
 
+    # Checks for errors in the error tables within SQL Server
     def check_errors(self):
         self.df = self.asql.query('''
             SELECT
@@ -104,6 +118,7 @@ class ErrorProcessing:
             global_objs['Event_Log'].write_log('Vacuum clogged with Errors. Cleaning vacuum...')
             return True
 
+    # Export errors into the 04_Errors folder if errors exists in the Error tables in SQL Server
     def process_errors(self):
         try:
             for source_file in self.df['Source_File'].unique().tolist():
@@ -129,10 +144,12 @@ class ErrorProcessing:
         except:
             return False
 
+    # Truncate error table in SQL Server after errors are processed
     def truncate_tbl(self):
         self.asql.execute('TRUNCATE TABLE %s' % global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text())
 
 
+# Generate random talk whenever Vacuum is idled (Text will not show in event logs)
 def gen_talk():
     f = open(os.path.join(curr_dir, 'Vacuum_Talk.txt'), 'r')
     lines = f.readlines()
@@ -142,6 +159,7 @@ def gen_talk():
     f.close()
 
 
+# Function to read text from a .sql file and execute that code in SQL Server
 def newuser(file):
     f = open(file, "r")
 
@@ -160,6 +178,7 @@ def newuser(file):
         f.close()
 
 
+# Function to check whether updates exists in the 02_To_Process
 def find_updates():
     f = list(pl.Path(process_dir).glob('*.xml')) + list(pl.Path(process_dir).glob('*.sql'))
 
@@ -168,6 +187,7 @@ def find_updates():
         return f
 
 
+# Function to process updates in the 02_To_Process folder
 def proc_updates(files):
     write_blank = False
 
@@ -207,6 +227,7 @@ def proc_updates(files):
         del folder_name, file_name
 
 
+# Function to process Errors if errors exists in the SQL Server Error table
 def proc_errors():
     obj = ErrorProcessing()
     try:
@@ -216,7 +237,9 @@ def proc_errors():
         obj.close_conn()
 
 
-def load_settings():
+# Checks network and sql server table settings to see if it exists and whether those settings are valid
+#   A GUI will pop-up if settings need to be inputed or whether settings are invalid
+def check_settings():
     obj = SettingsGUI()
 
     if not os.path.exists(errors_dir):
@@ -271,8 +294,9 @@ def load_settings():
     return True
 
 
+# Main loop for script that continuously searches the 02_To_Process and processes updates/errors whenever any exists
 if __name__ == '__main__':
-    if load_settings():
+    if check_settings():
         try:
             global_objs['SQL'].connect('alch')
         finally:
