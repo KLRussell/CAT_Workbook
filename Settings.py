@@ -117,8 +117,8 @@ class SettingsGUI:
         database_txtbox.pack(in_=network_frame, side=RIGHT, pady=7, padx=15)
         database_label.pack(in_=network_frame, side=RIGHT)
 
-        # Apply Network Labels & Input boxes to the Network_Frame
-        #     SQL Server Input Box
+        # Apply Send to LV Labels & Input boxes to the LV_Frame
+        #     CSR Directory Input Box
         csr_label = Label(self.main, text='CSR Dir:', padx=15, pady=7)
         csr_txtbox = Entry(self.main, textvariable=self.csr, width=58)
         csr_label.pack(in_=lv_frame, side=LEFT)
