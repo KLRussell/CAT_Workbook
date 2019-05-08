@@ -45,6 +45,10 @@ class CATWorkbook:
     def close_conn(self):
         self.asql.close()
 
+    def clean_df(self):
+        for col in self.df.columns.tolist():
+            self.df[col] = self.df[col].str.strip().str.replace('  ', ' ')
+
     def lv_operations(self):
         if self.sheet_name == 'Sheet1':
             myitems = self.df[self.df['Action'] == 'Send to LV']
@@ -225,6 +229,7 @@ def proc_updates(files):
                     obj = CATWorkbook(df, file_name)
 
                     try:
+                        obj.clean_df()
                         obj.lv_operations()
 
                         if obj.upload():
