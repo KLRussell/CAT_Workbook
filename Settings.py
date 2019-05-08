@@ -22,6 +22,7 @@ class SettingsGUI:
         # GUI Variables
         self.server = StringVar()
         self.database = StringVar()
+        self.csr = StringVar()
         self.w1s = StringVar()
         self.w2s = StringVar()
         self.w3s = StringVar()
@@ -75,13 +76,14 @@ class SettingsGUI:
             self.header_text = header
 
         # Set GUI Geometry and GUI Title
-        self.main.geometry('444x285+500+150')
+        self.main.geometry('444x355+500+150')
         self.main.title('Vacuum Settings')
         self.main.resizable(False, False)
 
         # Set GUI Frames
         header_frame = Frame(self.main)
         network_frame = LabelFrame(self.main, text='Network Settings', width=444, height=70)
+        lv_frame = LabelFrame(self.main, text='Send To LV', width=444, height=70)
         wrkbook_main_frame = LabelFrame(self.main, text='SQL Worksheet Staging Tables', width=444, height=54)
         wrkbook_left_frame = Frame(wrkbook_main_frame, width=219, height=54)
         wrkbook_right_frame = Frame(wrkbook_main_frame, width=219, height=54)
@@ -91,6 +93,7 @@ class SettingsGUI:
         # Apply Frames into GUI
         header_frame.pack()
         network_frame.pack(fill="both")
+        lv_frame.pack(fill="both")
         wrkbook_main_frame.pack(fill="both")
         wrkbook_left_frame.grid(row=0, column=0, ipady=5)
         wrkbook_right_frame.grid(row=0, column=1, ipady=5)
@@ -113,6 +116,13 @@ class SettingsGUI:
         database_txtbox = Entry(self.main, textvariable=self.database)
         database_txtbox.pack(in_=network_frame, side=RIGHT, pady=7, padx=15)
         database_label.pack(in_=network_frame, side=RIGHT)
+
+        # Apply Network Labels & Input boxes to the Network_Frame
+        #     SQL Server Input Box
+        csr_label = Label(self.main, text='CSR Dir:', padx=15, pady=7)
+        csr_txtbox = Entry(self.main, textvariable=self.csr, width=58)
+        csr_label.pack(in_=lv_frame, side=LEFT)
+        csr_txtbox.pack(in_=lv_frame, side=LEFT)
 
         # Apply Labels & Input boxes to the Wrkbook_Left_Frame
         #     Worksheet One Table Input Box
@@ -217,6 +227,8 @@ class SettingsGUI:
         elif not self.wne.get():
             messagebox.showerror('WNE Empty Error!', 'No value has been inputed for WNE TBL (Workbook Norm Errors)',
                                  parent=self.main)
+        elif not self.csr.get():
+            messagebox.showerror('CSR Dir Empty Error!', 'No value has been inputed for CSR Dir', parent=self.main)
         else:
             if self.asql.test_conn('alch'):
                 self.add_setting('Settings', self.server.get(), 'Server')
@@ -224,7 +236,11 @@ class SettingsGUI:
                 self.asql.change_config(server=self.server.get(), database=self.database.get())
                 self.asql.connect('alch')
 
-                if not self.check_table(self.w1s.get()):
+                if not os.path.exists(self.csr.get()):
+                    messagebox.showerror('Invalid CSR Dir!',
+                                         'CSR Directory listed does not exist. Please specify the CSR Directory',
+                                         parent=self.main)
+                elif not self.check_table(self.w1s.get()):
                     messagebox.showerror('Invalid W1S Table!',
                                          'W1S, Worksheet One Staging, table does not exist in sql server',
                                          parent=self.main)
@@ -249,6 +265,7 @@ class SettingsGUI:
                                          'WNE, Workbook Norm Errors, table does not exist in sql server',
                                          parent=self.main)
                 else:
+                    self.add_setting('Local_Settings', self.csr.get(), 'CSR_Dir')
                     self.add_setting('Local_Settings', self.w1s.get(), 'W1S_TBL')
                     self.add_setting('Local_Settings', self.w2s.get(), 'W2S_TBL')
                     self.add_setting('Local_Settings', self.w3s.get(), 'W3S_TBL')

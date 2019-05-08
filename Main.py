@@ -45,6 +45,14 @@ class CATWorkbook:
     def close_conn(self):
         self.asql.close()
 
+    def lv_operations(self):
+        if self.sheet_name == 'Sheet1':
+            myitems = self.df[self.df['Action'] == 'Send to LV']
+
+            if not myitems.empty:
+                for source_tbl, source_id in self.df['Source_TBL'], self.df['Source_ID']:
+
+
     # Function to upload data into SQL server tables according to CAT Workbook Sheet name
     def upload(self):
         try:
@@ -211,6 +219,8 @@ def proc_updates(files):
                     obj = CATWorkbook(df, file_name)
 
                     try:
+                        obj.lv_operations()
+
                         if obj.upload():
                             obj.migrate_file()
                         else:
