@@ -182,6 +182,7 @@ class SettingsGUI:
     def fill_gui(self):
         self.fill_textbox('Settings', self.server, 'Server')
         self.fill_textbox('Settings', self.database, 'Database')
+        self.fill_textbox('Local_Settings', self.csr, 'CSR_Dir')
         self.fill_textbox('Local_Settings', self.w1s, 'W1S_TBL')
         self.fill_textbox('Local_Settings', self.w2s, 'W2S_TBL')
         self.fill_textbox('Local_Settings', self.w3s, 'W3S_TBL')
