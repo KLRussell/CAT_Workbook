@@ -55,7 +55,9 @@ class CATWorkbook:
                 for index, row in self.df.head().iterrows():
                     f = list(pl.Path(global_objs['Local_Settings'].grab_item('CSR_Dir').decrypt_text())
                              .glob('{0}_{1}*'.format(row['Source_TBL'], row['Source_ID'])))
-                    self.df.loc[self.df.index == index, 'CSR_File_Name'] = str(max(f, key=os.path.getctime))
+                    if f:
+                        self.df.loc[self.df.index == index, 'CSR_File_Name'] = str(
+                            os.path.basename(max(f, key=os.path.getctime)))
 
     # Function to upload data into SQL server tables according to CAT Workbook Sheet name
     def upload(self):
