@@ -50,8 +50,12 @@ class CATWorkbook:
             myitems = self.df[self.df['Action'] == 'Send to LV']
 
             if not myitems.empty:
-                for source_tbl, source_id in self.df['Source_TBL'], self.df['Source_ID']:
+                self.df['CSR_File_Name'] = None
 
+                for index, row in self.df.head().iterrows():
+                    f = list(pl.Path(global_objs['Local_Settings'].grab_item('CSR_Dir').decrypt_text())
+                             .glob('{0}_{1}*'.format(row['Source_TBL'], row['Source_ID'])))
+                    self.df.loc[self.df.index == index, 'CSR_File_Name'] = str(max(f, key=os.path.getctime))
 
     # Function to upload data into SQL server tables according to CAT Workbook Sheet name
     def upload(self):
@@ -265,7 +269,8 @@ def check_settings():
         os.makedirs(failed_dir)
 
     if not global_objs['Settings'].grab_item('Server')\
-            or not global_objs['Settings'].grab_item('Database')\
+            or not global_objs['Settings'].grab_item('Database') \
+            or not global_objs['Local_Settings'].grab_item('CSR_Dir') \
             or not global_objs['Local_Settings'].grab_item('W1S_TBL')\
             or not global_objs['Local_Settings'].grab_item('W2S_TBL')\
             or not global_objs['Local_Settings'].grab_item('W3S_TBL')\
@@ -280,6 +285,8 @@ def check_settings():
 
         if not obj.sql_connect():
             mylist.append('network')
+        if not os.path.exists(global_objs['Local_Settings'].grab_item('CSR_Dir').decrypt_text()):
+            mylist.append('CSR Dir')
         if not obj.check_table(global_objs['Local_Settings'].grab_item('W1S_TBL').decrypt_text()):
             mylist.append('W1S')
         if not obj.check_table(global_objs['Local_Settings'].grab_item('W2S_TBL').decrypt_text()):
