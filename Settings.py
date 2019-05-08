@@ -76,7 +76,7 @@ class SettingsGUI:
             self.header_text = header
 
         # Set GUI Geometry and GUI Title
-        self.main.geometry('444x355+500+150')
+        self.main.geometry('444x340+500+150')
         self.main.title('Vacuum Settings')
         self.main.resizable(False, False)
 
