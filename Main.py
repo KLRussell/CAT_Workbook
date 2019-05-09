@@ -47,7 +47,7 @@ class CATWorkbook:
 
     def clean_df(self):
         for col in self.df.columns.tolist():
-            self.df[col] = self.df[col].str.strip().str.replace('  ', ' ')
+            self.df[col] = self.df[col].astype(str).str.strip().str.replace('  ', ' ')
 
     def lv_operations(self):
         if self.sheet_name == 'Sheet1':
