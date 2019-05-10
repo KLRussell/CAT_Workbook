@@ -217,7 +217,6 @@ def proc_updates(files):
             global_objs['Event_Log'].write_log('')
 
         global_objs['Event_Log'].write_log('Reading file ({0}/{1})'.format(folder_name, file_name))
-        global_objs['Event_Log'].write_log('')
 
         if os.path.splitext(file_name)[1].lower() == '.xml':
             xmlobj = XMLParseClass(file)
@@ -245,6 +244,8 @@ def proc_updates(files):
             global_objs['Event_Log'].write_log('Adding new user to CAT Employee table')
             newuser(file)
             os.remove(file)
+
+        write_blank = True
         del folder_name, file_name
 
 
