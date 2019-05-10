@@ -28,7 +28,6 @@ class SettingsGUI:
         self.w3s = StringVar()
         self.w4s = StringVar()
         self.we = StringVar()
-        self.wne = StringVar()
 
     # Static function to fill textbox in GUI
     @staticmethod
@@ -87,7 +86,7 @@ class SettingsGUI:
         wrkbook_main_frame = LabelFrame(self.main, text='SQL Worksheet Staging Tables', width=444, height=54)
         wrkbook_left_frame = Frame(wrkbook_main_frame, width=219, height=54)
         wrkbook_right_frame = Frame(wrkbook_main_frame, width=219, height=54)
-        error_frame = LabelFrame(self.main, text='SQL Workbook Error Tables', width=444, height=60)
+        error_frame = LabelFrame(self.main, text='SQL Workbook Error Table', width=444, height=60)
         buttons_frame = Frame(self.main)
 
         # Apply Frames into GUI
@@ -153,15 +152,9 @@ class SettingsGUI:
         # Apply Labels & Input boxes to the Wrkbook_Right_Frame
         #     Workbook Errors Table Input Box
         we_label = Label(error_frame, text='WE TBL:')
-        we_txtbox = Entry(error_frame, textvariable=self.we)
+        we_txtbox = Entry(error_frame, textvariable=self.we, width=58)
         we_label.grid(row=0, column=0, padx=8, pady=5, sticky='w')
         we_txtbox.grid(row=0, column=1, padx=13, pady=5, sticky='e')
-
-        #     Workbook Norm Errors Table Input Box
-        wne_label = Label(error_frame, text='WNE TBL:')
-        wne_txtbox = Entry(error_frame, textvariable=self.wne)
-        wne_label.grid(row=0, column=2, padx=8, pady=5, sticky='w')
-        wne_txtbox.grid(row=0, column=3, padx=13, pady=5, sticky='e')
 
         # Apply buttons to the Buttons_Frame
         #       Save Button
@@ -188,7 +181,6 @@ class SettingsGUI:
         self.fill_textbox('Local_Settings', self.w3s, 'W3S_TBL')
         self.fill_textbox('Local_Settings', self.w4s, 'W4S_TBL')
         self.fill_textbox('Local_Settings', self.we, 'WE_TBL')
-        self.fill_textbox('Local_Settings', self.wne, 'WNE_TBL')
 
     # Function to connect to SQL connection for this class
     def sql_connect(self):
@@ -225,9 +217,6 @@ class SettingsGUI:
         elif not self.we.get():
             messagebox.showerror('WE Empty Error!', 'No value has been inputed for WE TBL (Workbook Errors)',
                                  parent=self.main)
-        elif not self.wne.get():
-            messagebox.showerror('WNE Empty Error!', 'No value has been inputed for WNE TBL (Workbook Norm Errors)',
-                                 parent=self.main)
         elif not self.csr.get():
             messagebox.showerror('CSR Dir Empty Error!', 'No value has been inputed for CSR Dir', parent=self.main)
         else:
@@ -261,10 +250,6 @@ class SettingsGUI:
                     messagebox.showerror('Invalid WE Table!',
                                          'WE, Workbook Errors, table does not exist in sql server',
                                          parent=self.main)
-                elif not self.check_table(self.wne.get()):
-                    messagebox.showerror('Invalid WNE Table!',
-                                         'WNE, Workbook Norm Errors, table does not exist in sql server',
-                                         parent=self.main)
                 else:
                     self.add_setting('Local_Settings', self.csr.get(), 'CSR_Dir')
                     self.add_setting('Local_Settings', self.w1s.get(), 'W1S_TBL')
@@ -272,7 +257,6 @@ class SettingsGUI:
                     self.add_setting('Local_Settings', self.w3s.get(), 'W3S_TBL')
                     self.add_setting('Local_Settings', self.w4s.get(), 'W4S_TBL')
                     self.add_setting('Local_Settings', self.we.get(), 'WE_TBL')
-                    self.add_setting('Local_Settings', self.wne.get(), 'WNE_TBL')
 
                     self.main.destroy()
             else:

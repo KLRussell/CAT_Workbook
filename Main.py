@@ -120,15 +120,11 @@ class ErrorProcessing:
             SELECT
                 WE.Source_File,
                 WE.Source_File_ID,
-                WNE.Norm_Error,
+                WE.Error_Col,
                 WE.Error_Msg
                 
             FROM {0} As WE
-            INNER JOIN {1} As WNE
-            ON
-                WE.WNE_ID = WNE.WNE_ID
-        '''.format(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text(),
-                   global_objs['Local_Settings'].grab_item('WNE_TBL').decrypt_text()))
+        '''.format(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text()))
 
         if self.df.empty:
             return False
@@ -282,8 +278,7 @@ def check_settings():
             or not global_objs['Local_Settings'].grab_item('W1S_TBL')\
             or not global_objs['Local_Settings'].grab_item('W2S_TBL')\
             or not global_objs['Local_Settings'].grab_item('W3S_TBL')\
-            or not global_objs['Local_Settings'].grab_item('WE_TBL')\
-            or not global_objs['Local_Settings'].grab_item('WNE_TBL'):
+            or not global_objs['Local_Settings'].grab_item('WE_TBL'):
         header_text = 'Welcome to Vacuum Settings!\nSettings haven''t been established.\nPlease fill out all empty fields below:'
         obj.build_gui(header_text)
         del obj
@@ -305,8 +300,6 @@ def check_settings():
             mylist.append('W4S')
         if not obj.check_table(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text()):
             mylist.append('WE')
-        if not obj.check_table(global_objs['Local_Settings'].grab_item('WNE_TBL').decrypt_text()):
-            mylist.append('WNE')
 
         if len(mylist) > 0:
             header_text = 'Welcome to Vacuum Settings!\n{0} settings are invalid.\nPlease fix the network settings below:'\
