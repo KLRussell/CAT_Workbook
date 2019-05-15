@@ -12,6 +12,14 @@ global_objs = grabobjs(main_dir)
 
 
 class SettingsGUI:
+    csr_txtbox = None
+    w1s_txtbox = None
+    w2s_txtbox = None
+    w3s_txtbox = None
+    w4s_txtbox = None
+    we_txtbox = None
+    save_settings_button = None
+
     # Function that is executed upon creation of SettingsGUI class
     def __init__(self):
         self.header_text = 'Welcome to Vacuum Settings!\nSettings can be changed below.\nPress save when finished'
@@ -109,6 +117,7 @@ class SettingsGUI:
         server_txtbox = Entry(self.main, textvariable=self.server)
         server_label.pack(in_=network_frame, side=LEFT)
         server_txtbox.pack(in_=network_frame, side=LEFT)
+        server_txtbox.bind('<KeyRelease>', self.check_network)
 
         #     Server Database Input Box
         database_label = Label(self.main, text='Database:')
@@ -119,47 +128,47 @@ class SettingsGUI:
         # Apply Send to LV Labels & Input boxes to the LV_Frame
         #     CSR Directory Input Box
         csr_label = Label(self.main, text='CSR Dir:', padx=15, pady=7)
-        csr_txtbox = Entry(self.main, textvariable=self.csr, width=58)
+        self.csr_txtbox = Entry(self.main, textvariable=self.csr, width=58)
         csr_label.pack(in_=lv_frame, side=LEFT)
-        csr_txtbox.pack(in_=lv_frame, side=LEFT)
+        self.csr_txtbox.pack(in_=lv_frame, side=LEFT)
 
         # Apply Labels & Input boxes to the Wrkbook_Left_Frame
         #     Worksheet One Table Input Box
         w1s_label = Label(wrkbook_left_frame, text='W1S TBL:')
-        w1s_txtbox = Entry(wrkbook_left_frame, textvariable=self.w1s)
+        self.w1s_txtbox = Entry(wrkbook_left_frame, textvariable=self.w1s)
         w1s_label.grid(row=0, column=0, padx=8, pady=5, sticky='w')
-        w1s_txtbox.grid(row=0, column=1, padx=13, pady=5, sticky='e')
+        self.w1s_txtbox.grid(row=0, column=1, padx=13, pady=5, sticky='e')
 
         #     Worksheet Two Table Input Box
         w2s_label = Label(wrkbook_left_frame, text='W2S TBL:')
-        w2s_txtbox = Entry(wrkbook_left_frame, textvariable=self.w2s)
+        self.w2s_txtbox = Entry(wrkbook_left_frame, textvariable=self.w2s)
         w2s_label.grid(row=1, column=0, padx=8, pady=5, sticky='w')
-        w2s_txtbox.grid(row=1, column=1, padx=13, pady=5, sticky='e')
+        self.w2s_txtbox.grid(row=1, column=1, padx=13, pady=5, sticky='e')
 
         # Apply Labels & Input boxes to the Wrkbook_Right_Frame
         #     Worksheet Three Table Input Box
         w3s_label = Label(wrkbook_right_frame, text='W3S TBL:')
-        w3s_txtbox = Entry(wrkbook_right_frame, textvariable=self.w3s)
+        self.w3s_txtbox = Entry(wrkbook_right_frame, textvariable=self.w3s)
         w3s_label.grid(row=0, column=0, padx=8, pady=5, sticky='w')
-        w3s_txtbox.grid(row=0, column=1, padx=13, pady=5, sticky='e')
+        self.w3s_txtbox.grid(row=0, column=1, padx=13, pady=5, sticky='e')
 
         #     Worksheet Four Table Input Box
         w4s_label = Label(wrkbook_right_frame, text='W4S TBL:')
-        w4s_txtbox = Entry(wrkbook_right_frame, textvariable=self.w4s)
+        self.w4s_txtbox = Entry(wrkbook_right_frame, textvariable=self.w4s)
         w4s_label.grid(row=1, column=0, padx=8, pady=5, sticky='w')
-        w4s_txtbox.grid(row=1, column=1, padx=13, pady=5, sticky='e')
+        self.w4s_txtbox.grid(row=1, column=1, padx=13, pady=5, sticky='e')
 
         # Apply Labels & Input boxes to the Wrkbook_Right_Frame
         #     Workbook Errors Table Input Box
         we_label = Label(error_frame, text='WE TBL:')
-        we_txtbox = Entry(error_frame, textvariable=self.we, width=58)
+        self.we_txtbox = Entry(error_frame, textvariable=self.we, width=58)
         we_label.grid(row=0, column=0, padx=8, pady=5, sticky='w')
-        we_txtbox.grid(row=0, column=1, padx=13, pady=5, sticky='e')
+        self.we_txtbox.grid(row=0, column=1, padx=13, pady=5, sticky='e')
 
         # Apply buttons to the Buttons_Frame
         #       Save Button
-        save_settings_button = Button(buttons_frame, text='Save Settings', width=20, command=self.save_settings)
-        save_settings_button.grid(row=0, column=0, pady=6, padx=10)
+        self.save_settings_button = Button(buttons_frame, text='Save Settings', width=20, command=self.save_settings)
+        self.save_settings_button.grid(row=0, column=0, pady=6, padx=10)
 
         #       Cancel Button
         cancel_button = Button(buttons_frame, text='Cancel', width=20, command=self.cancel)
@@ -181,6 +190,36 @@ class SettingsGUI:
         self.fill_textbox('Local_Settings', self.w3s, 'W3S_TBL')
         self.fill_textbox('Local_Settings', self.w4s, 'W4S_TBL')
         self.fill_textbox('Local_Settings', self.we, 'WE_TBL')
+
+        if not self.server.get() or not self.database.get() or not self.asql.test_conn('alch'):
+            self.csr_txtbox.configure(state=DISABLED)
+            self.w1s_txtbox.configure(state=DISABLED)
+            self.w2s_txtbox.configure(state=DISABLED)
+            self.w3s_txtbox.configure(state=DISABLED)
+            self.w4s_txtbox.configure(state=DISABLED)
+            self.we_txtbox.configure(state=DISABLED)
+            self.save_settings_button.configure(state=DISABLED)
+        else:
+            self.asql.connect('alch')
+
+    # Function to check network settings if populated
+    def check_network(self, event):
+        if self.server.get() and self.database.get() and \
+                (global_objs['Settings'].grab_item('Server') != self.server.get() or
+                 global_objs['Settings'].grab_item('Database') != self.database.get()):
+            self.asql.change_config(server=self.server.get(), database=self.database.get())
+
+            if self.asql.test_conn('alch'):
+                self.csr_txtbox.configure(state=NORMAL)
+                self.w1s_txtbox.configure(state=NORMAL)
+                self.w2s_txtbox.configure(state=NORMAL)
+                self.w3s_txtbox.configure(state=NORMAL)
+                self.w4s_txtbox.configure(state=NORMAL)
+                self.we_txtbox.configure(state=NORMAL)
+                self.save_settings_button.configure(state=NORMAL)
+                self.add_setting('Settings', self.server.get(), 'Server')
+                self.add_setting('Settings', self.database.get(), 'Database')
+                self.asql.connect('alch')
 
     # Function to connect to SQL connection for this class
     def sql_connect(self):
@@ -208,61 +247,45 @@ class SettingsGUI:
         elif not self.w4s.get():
             messagebox.showerror('W4S Empty Error!', 'No value has been inputed for W4S TBL (Worksheet Four Staging)',
                                  parent=self.main)
-        elif not self.server.get():
-            messagebox.showerror('Server Empty Error!', 'No value has been inputed for Server',
-                                 parent=self.main)
-        elif not self.database.get():
-            messagebox.showerror('Database Empty Error!', 'No value has been inputed for Database',
-                                 parent=self.main)
         elif not self.we.get():
             messagebox.showerror('WE Empty Error!', 'No value has been inputed for WE TBL (Workbook Errors)',
                                  parent=self.main)
         elif not self.csr.get():
             messagebox.showerror('CSR Dir Empty Error!', 'No value has been inputed for CSR Dir', parent=self.main)
         else:
-            self.asql.change_config(server=self.server.get(), database=self.database.get())
-
-            if self.asql.test_conn('alch'):
-                self.add_setting('Settings', self.server.get(), 'Server')
-                self.add_setting('Settings', self.database.get(), 'Database')
-                self.asql.connect('alch')
-
-                if not os.path.exists(self.csr.get()):
-                    messagebox.showerror('Invalid CSR Dir!',
-                                         'CSR Directory listed does not exist. Please specify the CSR Directory',
-                                         parent=self.main)
-                elif not self.check_table(self.w1s.get()):
-                    messagebox.showerror('Invalid W1S Table!',
-                                         'W1S, Worksheet One Staging, table does not exist in sql server',
-                                         parent=self.main)
-                elif not self.check_table(self.w2s.get()):
-                    messagebox.showerror('Invalid W2S Table!',
-                                         'W2S, Worksheet Two Staging, table does not exist in sql server',
-                                         parent=self.main)
-                elif not self.check_table(self.w3s.get()):
-                    messagebox.showerror('Invalid W3S Table!',
-                                         'W3S, Worksheet Three Staging, table does not exist in sql server',
-                                         parent=self.main)
-                elif not self.check_table(self.w4s.get()):
-                    messagebox.showerror('Invalid W4S Table!',
-                                         'W4S, Worksheet Four Staging, table does not exist in sql server',
-                                         parent=self.main)
-                elif not self.check_table(self.we.get()):
-                    messagebox.showerror('Invalid WE Table!',
-                                         'WE, Workbook Errors, table does not exist in sql server',
-                                         parent=self.main)
-                else:
-                    self.add_setting('Local_Settings', self.csr.get(), 'CSR_Dir')
-                    self.add_setting('Local_Settings', self.w1s.get(), 'W1S_TBL')
-                    self.add_setting('Local_Settings', self.w2s.get(), 'W2S_TBL')
-                    self.add_setting('Local_Settings', self.w3s.get(), 'W3S_TBL')
-                    self.add_setting('Local_Settings', self.w4s.get(), 'W4S_TBL')
-                    self.add_setting('Local_Settings', self.we.get(), 'WE_TBL')
-
-                    self.main.destroy()
-            else:
-                messagebox.showerror('Network Test Error!', 'Unable to connect to {0} server and {1} database',
+            if not os.path.exists(self.csr.get()):
+                messagebox.showerror('Invalid CSR Dir!',
+                                     'CSR Directory listed does not exist. Please specify the CSR Directory',
                                      parent=self.main)
+            elif not self.check_table(self.w1s.get()):
+                messagebox.showerror('Invalid W1S Table!',
+                                     'W1S, Worksheet One Staging, table does not exist in sql server',
+                                     parent=self.main)
+            elif not self.check_table(self.w2s.get()):
+                messagebox.showerror('Invalid W2S Table!',
+                                     'W2S, Worksheet Two Staging, table does not exist in sql server',
+                                     parent=self.main)
+            elif not self.check_table(self.w3s.get()):
+                messagebox.showerror('Invalid W3S Table!',
+                                     'W3S, Worksheet Three Staging, table does not exist in sql server',
+                                     parent=self.main)
+            elif not self.check_table(self.w4s.get()):
+                messagebox.showerror('Invalid W4S Table!',
+                                     'W4S, Worksheet Four Staging, table does not exist in sql server',
+                                     parent=self.main)
+            elif not self.check_table(self.we.get()):
+                messagebox.showerror('Invalid WE Table!',
+                                     'WE, Workbook Errors, table does not exist in sql server',
+                                     parent=self.main)
+            else:
+                self.add_setting('Local_Settings', self.csr.get(), 'CSR_Dir')
+                self.add_setting('Local_Settings', self.w1s.get(), 'W1S_TBL')
+                self.add_setting('Local_Settings', self.w2s.get(), 'W2S_TBL')
+                self.add_setting('Local_Settings', self.w3s.get(), 'W3S_TBL')
+                self.add_setting('Local_Settings', self.w4s.get(), 'W4S_TBL')
+                self.add_setting('Local_Settings', self.we.get(), 'WE_TBL')
+
+                self.main.destroy()
 
     # Function to destroy GUI when Cancel button is pressed
     def cancel(self):
