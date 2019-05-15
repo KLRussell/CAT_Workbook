@@ -88,17 +88,29 @@ class CryptHandle:
 
         self.key = base64.urlsafe_b64encode(kdf.derive(etext))
 
-    def encrypt_text(self, text):
-        if not self.key:
-            self.create_key()
+    @staticmethod
+    def code_method(obj):
+        if isinstance(obj, int):
+            return obj.to_bytes(4, byteorder='big', signed=True)
+        elif isinstance(obj, str):
+            return obj.encode()
+        else:
+            return obj.decode()
 
-        crypt_obj = Fernet(self.key)
-        self.encrypted_text = crypt_obj.encrypt(text.encode())
+    def encrypt_text(self, item):
+        if isinstance(item, int) or isinstance(item, str):
+            if not self.key:
+                self.create_key()
+
+            crypt_obj = Fernet(self.key)
+            self.encrypted_text = crypt_obj.encrypt(self.code_method(item))
+        else:
+            raise Exception('Invalid data type for encryption')
 
     def decrypt_text(self):
         if self.key and self.encrypted_text:
             crypt_obj = Fernet(self.key)
-            return crypt_obj.decrypt(self.encrypted_text).decode()
+            return self.code_method(crypt_obj.decrypt(self.encrypted_text))
 
     def grab_items(self):
         return [self.key, self.encrypted_text]
@@ -392,6 +404,8 @@ class SQLHandle:
         self.conn_type = conn_type
 
         if self.test_conn():
+            self.close()
+
             try:
                 if self.conn_type == 'alch':
                     self.engine = mysql.create_engine(self.conn_str)
@@ -423,10 +437,14 @@ class SQLHandle:
 
     def close(self):
         if self.conn_type == 'alch':
-            self.engine.dispose()
+            if self.engine:
+                self.engine.dispose()
         else:
-            self.cursor.close()
-            self.conn.close()
+            if self.cursor:
+                self.cursor.close()
+
+            if self.conn:
+                self.conn.close()
 
     def createsession(self):
         if self.conn_type == 'alch':

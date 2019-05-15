@@ -225,7 +225,6 @@ class SettingsGUI:
             if self.asql.test_conn('alch'):
                 self.add_setting('Settings', self.server.get(), 'Server')
                 self.add_setting('Settings', self.database.get(), 'Database')
-                self.asql.change_config(server=self.server.get(), database=self.database.get())
                 self.asql.connect('alch')
 
                 if not os.path.exists(self.csr.get()):

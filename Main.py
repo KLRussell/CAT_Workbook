@@ -258,6 +258,7 @@ def proc_errors():
 # Checks network and sql server table settings to see if it exists and whether those settings are valid
 #   A GUI will pop-up if settings need to be inputed or whether settings are invalid
 def check_settings():
+    my_return = False
     obj = SettingsGUI()
 
     if not os.path.exists(errors_dir):
@@ -281,45 +282,41 @@ def check_settings():
             or not global_objs['Local_Settings'].grab_item('WE_TBL'):
         header_text = 'Welcome to Vacuum Settings!\nSettings haven''t been established.\nPlease fill out all empty fields below:'
         obj.build_gui(header_text)
-        del obj
-        return False
     else:
         mylist = []
 
-        if not obj.sql_connect():
-            mylist.append('network')
-        if not os.path.exists(global_objs['Local_Settings'].grab_item('CSR_Dir').decrypt_text()):
-            mylist.append('CSR Dir')
-        if not obj.check_table(global_objs['Local_Settings'].grab_item('W1S_TBL').decrypt_text()):
-            mylist.append('W1S')
-        if not obj.check_table(global_objs['Local_Settings'].grab_item('W2S_TBL').decrypt_text()):
-            mylist.append('W2S')
-        if not obj.check_table(global_objs['Local_Settings'].grab_item('W3S_TBL').decrypt_text()):
-            mylist.append('W3S')
-        if not obj.check_table(global_objs['Local_Settings'].grab_item('W4S_TBL').decrypt_text()):
-            mylist.append('W4S')
-        if not obj.check_table(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text()):
-            mylist.append('WE')
+        try:
+            if not obj.sql_connect():
+                mylist.append('network')
+            if not os.path.exists(global_objs['Local_Settings'].grab_item('CSR_Dir').decrypt_text()):
+                mylist.append('CSR Dir')
+            if not obj.check_table(global_objs['Local_Settings'].grab_item('W1S_TBL').decrypt_text()):
+                mylist.append('W1S')
+            if not obj.check_table(global_objs['Local_Settings'].grab_item('W2S_TBL').decrypt_text()):
+                mylist.append('W2S')
+            if not obj.check_table(global_objs['Local_Settings'].grab_item('W3S_TBL').decrypt_text()):
+                mylist.append('W3S')
+            if not obj.check_table(global_objs['Local_Settings'].grab_item('W4S_TBL').decrypt_text()):
+                mylist.append('W4S')
+            if not obj.check_table(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text()):
+                mylist.append('WE')
 
-        if len(mylist) > 0:
-            header_text = 'Welcome to Vacuum Settings!\n{0} settings are invalid.\nPlease fix the network settings below:'\
-                .format(', '.join(mylist))
-            obj.build_gui(header_text)
-            del obj, mylist
-            return False
+            if len(mylist) > 0:
+                header_text = 'Welcome to Vacuum Settings!\n{0} settings are invalid.\nPlease fix the network settings below:'\
+                    .format(', '.join(mylist))
+                obj.build_gui(header_text)
+            else:
+                my_return = True
+        finally:
+            obj.sql_close()
         del mylist
     del obj
-    return True
+    return my_return
 
 
 # Main loop for script that continuously searches the 02_To_Process and processes updates/errors whenever any exists
 if __name__ == '__main__':
     if check_settings():
-        try:
-            global_objs['SQL'].connect('alch')
-        finally:
-            global_objs['SQL'].close()
-
         global_objs['Event_Log'].write_log('')
         global_objs['Event_Log'].write_log('Starting Vacuum...')
 
@@ -349,5 +346,7 @@ if __name__ == '__main__':
 
         finally:
             os.system('pause')
+    else:
+        global_objs['Event_Log'].write_log('Settings Mode was established. Need to re-run script', 'warning')
 
 gc.collect()
