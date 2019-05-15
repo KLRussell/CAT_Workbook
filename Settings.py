@@ -220,6 +220,8 @@ class SettingsGUI:
         elif not self.csr.get():
             messagebox.showerror('CSR Dir Empty Error!', 'No value has been inputed for CSR Dir', parent=self.main)
         else:
+            self.asql.change_config(server=self.server.get(), database=self.database.get())
+
             if self.asql.test_conn('alch'):
                 self.add_setting('Settings', self.server.get(), 'Server')
                 self.add_setting('Settings', self.database.get(), 'Database')
