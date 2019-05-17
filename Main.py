@@ -45,10 +45,12 @@ class CATWorkbook:
     def close_conn(self):
         self.asql.close()
 
+    # Cleans Dataframe of double spaces and leading/preceeding spaces
     def clean_df(self):
         for col in self.df.columns.tolist():
             self.df[col] = self.df[col].astype(str).str.strip().str.replace('  ', ' ')
 
+    # Finds CSR in CSR directory for items sent to LV
     def lv_operations(self):
         if self.sheet_name == 'Sheet1':
             myitems = self.df[self.df['Action'] == 'Send to LV']
