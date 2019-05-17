@@ -20,7 +20,7 @@ process_dir = os.path.join(main_dir, '02_To_Process')
 uploaded_dir = os.path.join(main_dir, '03_Processed', '01_Uploaded')
 failed_dir = os.path.join(main_dir, '03_Processed', '02_Failed')
 errors_dir = os.path.join(main_dir, '04_Errors')
-global_objs = grabobjs(main_dir)
+global_objs = grabobjs(main_dir, 'Vacuum')
 
 
 # CATWorkbook Class Function

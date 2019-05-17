@@ -8,7 +8,7 @@ import os
 # Global Variable declaration
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 main_dir = os.path.dirname(curr_dir)
-global_objs = grabobjs(main_dir)
+global_objs = grabobjs(main_dir, 'Vacuum')
 
 
 class SettingsGUI:
