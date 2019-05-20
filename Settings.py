@@ -48,11 +48,13 @@ class SettingsGUI:
 
     # static function to add setting to Local_Settings shelf files
     @staticmethod
-    def add_setting(setting_list, val, key):
-        assert(key and val and setting_list)
+    def add_setting(setting_list, val, key, encrypt=True):
+        assert (key and setting_list)
 
         global_objs[setting_list].del_item(key)
-        global_objs[setting_list].add_item(key=key, val=val, encrypt=True)
+
+        if val:
+            global_objs[setting_list].add_item(key=key, val=val, encrypt=encrypt)
 
     # Function to validate whether a SQL table exists in SQL server
     def check_table(self, table):
