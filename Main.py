@@ -312,7 +312,10 @@ def check_settings():
         finally:
             obj.sql_close()
         del mylist
+
+    obj.cancel()
     del obj
+
     return my_return
 
 
