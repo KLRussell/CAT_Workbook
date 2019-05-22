@@ -119,13 +119,14 @@ class SettingsGUI:
         server_txtbox = Entry(self.main, textvariable=self.server)
         server_label.pack(in_=network_frame, side=LEFT)
         server_txtbox.pack(in_=network_frame, side=LEFT)
-        server_txtbox.bind('<KeyRelease>', self.check_network)
+        server_txtbox.bind('<FocusOut>', self.check_network)
 
         #     Server Database Input Box
         database_label = Label(self.main, text='Database:')
         database_txtbox = Entry(self.main, textvariable=self.database)
         database_txtbox.pack(in_=network_frame, side=RIGHT, pady=7, padx=15)
         database_label.pack(in_=network_frame, side=RIGHT)
+        database_txtbox.bind('<KeyRelease>', self.check_network)
 
         # Apply Send to LV Labels & Input boxes to the LV_Frame
         #     CSR Directory Input Box
@@ -222,6 +223,22 @@ class SettingsGUI:
                 self.add_setting('Settings', self.server.get(), 'Server')
                 self.add_setting('Settings', self.database.get(), 'Database')
                 self.asql.connect('alch')
+            else:
+                self.csr_txtbox.configure(state=DISABLED)
+                self.w1s_txtbox.configure(state=DISABLED)
+                self.w2s_txtbox.configure(state=DISABLED)
+                self.w3s_txtbox.configure(state=DISABLED)
+                self.w4s_txtbox.configure(state=DISABLED)
+                self.we_txtbox.configure(state=DISABLED)
+                self.save_settings_button.configure(state=DISABLED)
+        else:
+            self.csr_txtbox.configure(state=DISABLED)
+            self.w1s_txtbox.configure(state=DISABLED)
+            self.w2s_txtbox.configure(state=DISABLED)
+            self.w3s_txtbox.configure(state=DISABLED)
+            self.w4s_txtbox.configure(state=DISABLED)
+            self.we_txtbox.configure(state=DISABLED)
+            self.save_settings_button.configure(state=DISABLED)
 
     # Function to connect to SQL connection for this class
     def sql_connect(self):
