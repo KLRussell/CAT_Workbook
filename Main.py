@@ -48,7 +48,8 @@ class CATWorkbook:
     # Cleans Dataframe of double spaces and leading/preceeding spaces
     def clean_df(self):
         for col in self.df.columns.tolist():
-            self.df[col] = self.df[col].astype(str).str.strip().replace(np.nan, None).str.replace('  ', ' ')
+            self.df[col] = self.df[col].astype(str).where(pd.notnull(self.df[col]), None).str.strip()\
+                .str.replace('  ', ' ')
 
     # Finds CSR in CSR directory for items sent to LV
     def lv_operations(self):
