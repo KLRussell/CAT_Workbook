@@ -137,26 +137,26 @@ class SettingsGUI:
 
         # Apply Labels & Input boxes to the Wrkbook_Left_Frame
         #     Worksheet One Table Input Box
-        w1s_label = Label(wrkbook_left_frame, text='W1S TBL:')
+        w1s_label = Label(wrkbook_left_frame, text='WS1 TBL:')
         self.w1s_txtbox = Entry(wrkbook_left_frame, textvariable=self.w1s)
         w1s_label.grid(row=0, column=0, padx=8, pady=5, sticky='w')
         self.w1s_txtbox.grid(row=0, column=1, padx=13, pady=5, sticky='e')
 
         #     Worksheet Two Table Input Box
-        w2s_label = Label(wrkbook_left_frame, text='W2S TBL:')
+        w2s_label = Label(wrkbook_left_frame, text='WS2 TBL:')
         self.w2s_txtbox = Entry(wrkbook_left_frame, textvariable=self.w2s)
         w2s_label.grid(row=1, column=0, padx=8, pady=5, sticky='w')
         self.w2s_txtbox.grid(row=1, column=1, padx=13, pady=5, sticky='e')
 
         # Apply Labels & Input boxes to the Wrkbook_Right_Frame
         #     Worksheet Three Table Input Box
-        w3s_label = Label(wrkbook_right_frame, text='W3S TBL:')
+        w3s_label = Label(wrkbook_right_frame, text='WS3 TBL:')
         self.w3s_txtbox = Entry(wrkbook_right_frame, textvariable=self.w3s)
         w3s_label.grid(row=0, column=0, padx=8, pady=5, sticky='w')
         self.w3s_txtbox.grid(row=0, column=1, padx=13, pady=5, sticky='e')
 
         #     Worksheet Four Table Input Box
-        w4s_label = Label(wrkbook_right_frame, text='W4S TBL:')
+        w4s_label = Label(wrkbook_right_frame, text='WS4 TBL:')
         self.w4s_txtbox = Entry(wrkbook_right_frame, textvariable=self.w4s)
         w4s_label.grid(row=1, column=0, padx=8, pady=5, sticky='w')
         self.w4s_txtbox.grid(row=1, column=1, padx=13, pady=5, sticky='e')
