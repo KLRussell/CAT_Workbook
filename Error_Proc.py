@@ -41,7 +41,9 @@ class ErrorProcessing:
                 WE.Source_File,
                 WE.Source_File_ID,
                 WE.Error_Col,
-                WE.Error_Msg
+                WE.Error_Msg,
+                ROW_NUMBER()
+                    OVER(PARTITION BY Source_File, Source_File_ID ORDER BY Edit_DT) Filter
 
             FROM {0} As WE
         '''.format(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text()))
@@ -49,6 +51,8 @@ class ErrorProcessing:
         if self.df.empty:
             return False
         else:
+            self.df = self.df.loc[self.df['Filter'] == 1]
+            self.df.drop(['Filter'], axis=1)
             global_objs['Event_Log'].write_log('Vacuum clogged with Errors. Cleaning vacuum...')
             return True
 
