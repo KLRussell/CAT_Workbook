@@ -1,7 +1,6 @@
 # Global Module import
 from Global import grabobjs
 from Global import XMLParseClass
-from Global import XMLAppendClass
 from Settings import SettingsGUI
 from time import sleep
 
@@ -10,7 +9,6 @@ import gc
 import pathlib as pl
 import random
 import numpy as np
-import pandas as pd
 import traceback
 
 # Global Variable declaration
@@ -99,72 +97,6 @@ class CATWorkbook:
             os.rename(os.path.join(process_dir, self.file), os.path.join(failed_dir, self.file))
 
 
-# Class object for ErrorProcessing
-class ErrorProcessing:
-    # Private variable declaring for ErrorProcessing class
-    df = pd.DataFrame()
-
-    # Function that is executed upon creation of ErrorProcessing class
-    def __init__(self):
-        self.asql = global_objs['SQL']
-        try:
-            self.asql.connect('alch')
-        finally:
-            self.asql.close()
-
-    # Closes SQL connection for class object
-    def close_conn(self):
-        self.asql.close()
-
-    # Checks for errors in the error tables within SQL Server
-    def check_errors(self):
-        self.df = self.asql.query('''
-            SELECT
-                WE.Source_File,
-                WE.Source_File_ID,
-                WE.Error_Col,
-                WE.Error_Msg
-                
-            FROM {0} As WE
-        '''.format(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text()))
-
-        if self.df.empty:
-            return False
-        else:
-            global_objs['Event_Log'].write_log('Vacuum clogged with Errors. Cleaning vacuum...')
-            return True
-
-    # Export errors into the 04_Errors folder if errors exists in the Error tables in SQL Server
-    def process_errors(self):
-        try:
-            for source_file in self.df['Source_File'].unique().tolist():
-                xmlobj = XMLParseClass(os.path.join(uploaded_dir, source_file))
-                df = xmlobj.parsexml('./{urn:schemas-microsoft-com:rowset}data/')
-                df['Source_File_ID'] = np.arange(len(df))
-                df = pd.merge(df, self.df, on='Source_File_ID')
-                del df['Source_File'], df['Source_File_ID']
-
-                for comp_serial in df['Comp_Serial'].tolist():
-                    global_objs['Event_Log'].write_log('{0} error(s) appended to {1}\'s workbook'.format(
-                        len(df[df['Comp_Serial'] == comp_serial].index), comp_serial), 'warning')
-
-                    if not os.path.exists(os.path.join(errors_dir, comp_serial)):
-                        os.makedirs(os.path.join(errors_dir, comp_serial))
-
-                    obj = XMLAppendClass(os.path.join(errors_dir, comp_serial, source_file))
-                    obj.write_xml(df.loc[df['Comp_Serial'] == comp_serial])
-                    del obj
-
-                del xmlobj, df
-            return True
-        except:
-            return False
-
-    # Truncate error table in SQL Server after errors are processed
-    def truncate_tbl(self):
-        self.asql.execute('TRUNCATE TABLE %s' % global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text())
-
-
 # Generate random talk whenever Vacuum is idled (Text will not show in event logs)
 def gen_talk():
     f = open(os.path.join(curr_dir, 'Vacuum_Talk.txt'), 'r')
@@ -247,16 +179,6 @@ def proc_updates(files):
         del folder_name, file_name
 
 
-# Function to process Errors if errors exists in the SQL Server Error table
-def proc_errors():
-    obj = ErrorProcessing()
-    try:
-        if obj.check_errors() and obj.process_errors():
-            obj.truncate_tbl()
-    finally:
-        obj.close_conn()
-
-
 # Checks network and sql server table settings to see if it exists and whether those settings are valid
 #   A GUI will pop-up if settings need to be inputed or whether settings are invalid
 def check_settings():
@@ -331,7 +253,6 @@ if __name__ == '__main__':
             while 1 != 0:
                 has_updates = None
                 global_objs['Event_Log'].write_log('Vacuum sniffing floor for crumbs...')
-                proc_errors()
 
                 while has_updates is None:
                     has_updates = find_updates()
