@@ -17,7 +17,6 @@ main_dir = os.path.dirname(curr_dir)
 process_dir = os.path.join(main_dir, '02_To_Process')
 uploaded_dir = os.path.join(main_dir, '03_Processed', '01_Uploaded')
 failed_dir = os.path.join(main_dir, '03_Processed', '02_Failed')
-errors_dir = os.path.join(main_dir, '04_Errors')
 global_objs = grabobjs(main_dir, 'Vacuum')
 
 
@@ -185,9 +184,6 @@ def check_settings():
     my_return = False
     obj = SettingsGUI()
 
-    if not os.path.exists(errors_dir):
-        os.makedirs(errors_dir)
-
     if not os.path.exists(process_dir):
         os.makedirs(process_dir)
 
@@ -202,8 +198,7 @@ def check_settings():
             or not global_objs['Local_Settings'].grab_item('CSR_Dir') \
             or not global_objs['Local_Settings'].grab_item('W1S_TBL')\
             or not global_objs['Local_Settings'].grab_item('W2S_TBL')\
-            or not global_objs['Local_Settings'].grab_item('W3S_TBL')\
-            or not global_objs['Local_Settings'].grab_item('WE_TBL'):
+            or not global_objs['Local_Settings'].grab_item('W3S_TBL'):
         header_text = 'Welcome to Vacuum Settings!\nSettings haven''t been established.\nPlease fill out all empty fields below:'
         obj.build_gui(header_text)
     else:
@@ -222,8 +217,6 @@ def check_settings():
                 mylist.append('W3S')
             if not obj.check_table(global_objs['Local_Settings'].grab_item('W4S_TBL').decrypt_text()):
                 mylist.append('W4S')
-            if not obj.check_table(global_objs['Local_Settings'].grab_item('WE_TBL').decrypt_text()):
-                mylist.append('WE')
 
             if len(mylist) > 0:
                 header_text = 'Welcome to Vacuum Settings!\n{0} settings are invalid.\nPlease fix the network settings below:'\
